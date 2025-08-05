@@ -455,7 +455,7 @@ let mv1_signers =
       ~sk:"edsk3eZBgFAf1VtdibfxoCcihxXje9S3th7jdEgVA2kHG82EKYNKNm";
   ]
 
-let tz2_signers =
+let mv2_signers =
   [
     (* mv2Tt9pzSu522YivfVZkQmsgabyzErLLy7x9 *)
     Apdu.Signer.make ~mnemonic:zebra ~path:default_path
@@ -489,7 +489,7 @@ let tz2_signers =
       ~sk:"spsk2TDhUqfr8HV5643ubsEod5B8iWH7dAEE46mimatSQPs9uJaUsW";
   ]
 
-let tz3_signers =
+let mv3_signers =
   [
     (* mv3GirHWj1f5g3BfpD4spJiYjXV293xmeEF1 *)
     Apdu.Signer.make ~mnemonic:zebra ~path:default_path

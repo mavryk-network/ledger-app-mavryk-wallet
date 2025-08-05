@@ -73,11 +73,11 @@ APP_SOURCE_PATH += src src/parser
 
 # Application icons following guidelines:
 # https://developers.ledger.com/docs/embedded-app/design-requirements/#device-icon
-ICON_NANOS = icons/nano-s-tezos.gif
-ICON_NANOX = icons/nano-x-tezos.gif
-ICON_NANOSP = icons/nano-x-tezos.gif
-ICON_STAX = icons/stax_tezos.gif
-ICON_FLEX = icons/flex_tezos.gif
+ICON_NANOS = icons/nano-s-mavryk.gif
+ICON_NANOX = icons/nano-x-mavryk.gif
+ICON_NANOSP = icons/nano-x-mavryk.gif
+ICON_STAX = icons/stax_mavryk.gif
+ICON_FLEX = icons/flex_mavryk.gif
 
 # Application allowed derivation curves.
 # Possibles curves are: secp256k1, secp256r1, ed25519 and bls12381g1
@@ -101,7 +101,7 @@ PATH_APP_LOAD_PARAMS = "44'/1729'"
 #   * It must at least contains one value.
 #   * Values can be the app ticker or anything else but should be unique.
 VARIANT_PARAM = APP_TYPE
-VARIANT_VALUES = tezos_wallet
+VARIANT_VALUES = mavryk_wallet
 
 # Enabling DEBUG flag will enable PRINTF and disable optimizations
 #DEBUG = 1

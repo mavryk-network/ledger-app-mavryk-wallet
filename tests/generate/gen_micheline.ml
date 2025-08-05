@@ -15,7 +15,7 @@
 
 open Mavryk_protocol_001_PtAtLas
 open Mavryk_micheline
-open Mavryk_benchmarks_proto_018_Proxford
+open Mavryk_benchmarks_proto_001_PtAtLas
 
 let config =
   {
