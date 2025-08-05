@@ -407,10 +407,10 @@ find_prefix(const char *s, const uint8_t **p, size_t *pl, size_t dl)
 
     /* Public key hashes */
 
-    B58_PREFIX("mv1",  "\x05\x7E\x86",     3, 20);
-    B58_PREFIX("mv2",  "\x05\x7E\x87",     3, 20);
-    B58_PREFIX("mv3",  "\x05\x7E\x81",     3, 20);
-    B58_PREFIX("mv4",  "\x05\x7E\x84",     3, 20);
+    B58_PREFIX("mv1",  "\x05\xBA\xC4",     3, 20);
+    B58_PREFIX("mv2",  "\x05\xBA\xC7",     3, 20);
+    B58_PREFIX("mv3",  "\x05\xBA\xC9",     3, 20);
+    B58_PREFIX("mv4",  "\x05\xBA\xCC",     3, 20);
 
     /* Public keys */
 

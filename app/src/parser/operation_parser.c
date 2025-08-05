@@ -641,10 +641,11 @@ mv_format_amount(char *str)
     }
 add_currency:
     str[len]     = ' ';
-    str[len + 1] = 'X';
-    str[len + 2] = 'T';
-    str[len + 3] = 'Z';
-    len += 4;
+    str[len + 1] = 'M';
+    str[len + 2] = 'V';
+    str[len + 3] = 'R';
+    str[len + 4] = 'K';
+    len += 5;
     str[len] = 0;
 }
 
