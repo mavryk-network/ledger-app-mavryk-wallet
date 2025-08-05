@@ -1,3 +1,3 @@
-[submodule "mavryk-protocol"]
-	path = docker/mavryk
+[submodule "docker/mavryk-protocol"]
+	path = docker/mavryk-protocol
 	url = https://gitlab.com/mavryk-network/mavryk-protocol.git
