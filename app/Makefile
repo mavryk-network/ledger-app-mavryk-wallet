@@ -38,7 +38,7 @@ endif
 #        Mandatory configuration       #
 ########################################
 # Application name
-APPNAME = "Tezos Wallet"
+APPNAME = "Mavryk Wallet"
 
 # Application version
 APPVERSION_M=3
@@ -106,7 +106,7 @@ VARIANT_VALUES = tezos_wallet
 # Enabling DEBUG flag will enable PRINTF and disable optimizations
 #DEBUG = 1
 ifneq ($(DEBUG), 0)
-  DEFINES += TEZOS_DEBUG
+  DEFINES += MAVRYK_DEBUG
 endif
 
 # CFLAGS
@@ -148,7 +148,7 @@ ENABLE_SWAP = 1
 # U2F - used e.g. by Kukai wallet
 SDK_SOURCE_PATH  += lib_u2f lib_stusb_impl
 DEFINES   += USB_SEGMENT_SIZE=64
-DEFINES   += U2F_PROXY_MAGIC=\"XTZ\"
+DEFINES   += U2F_PROXY_MAGIC=\"MVRK\"
 DEFINES   += HAVE_IO_U2F HAVE_U2F
 
 ########################################

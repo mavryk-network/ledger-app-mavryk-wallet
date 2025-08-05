@@ -18,9 +18,9 @@ from abc import ABC, abstractmethod
 from enum import IntEnum
 from typing import Any, Dict, List, Optional, Union
 
-from pytezos.block.forge import forge_int_fixed
-from pytezos.crypto.key import blake2b_32
-from pytezos.michelson.forge import (
+from pymavryk.block.forge import forge_int_fixed
+from pymavryk.crypto.key import blake2b_32
+from pymavryk.michelson.forge import (
     forge_address,
     forge_array,
     forge_base58,
@@ -30,10 +30,10 @@ from pytezos.michelson.forge import (
     forge_nat,
     forge_public_key,
 )
-from pytezos.operation.content import ContentMixin, format_mutez
-import pytezos.operation.forge as forge_operation
-from pytezos.operation.forge import reserved_entrypoints, forge_tag
-from pytezos.rpc.kind import operation_tags
+from pymavryk.operation.content import ContentMixin, format_mumav
+import pymavryk.operation.forge as forge_operation
+from pymavryk.operation.forge import reserved_entrypoints, forge_tag
+from pymavryk.rpc.kind import operation_tags
 
 class Message(ABC):
     """Class representing a message."""
@@ -69,7 +69,7 @@ class Default:
     """Class holding default values."""
     BLOCK_HASH: str                      = 'BKiHLREqU3JkXfzEDYAkmmfX48gBDtYhMrpA98s7Aq4SzbUAB6M'
     PROTOCOL_HASH: str                   = 'PrihK96nBAFSxVL1GLJTVhu9YnzkMFiBeuJRPA8NwuZVZCE1L6i'
-    ED25519_PUBLIC_KEY_HASH: str         = 'tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU'
+    ED25519_PUBLIC_KEY_HASH: str         = 'mv1PhA8Lnzy7emo2o6PuyvPvBqCEU5ddW1u7'
     ORIGINATED_ADDRESS: str              = 'KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT'
     ORIGINATED_SMART_ROLLUP_ADDRESS: str = 'sr163Lv22CdE8QagCwf48PWDTquk6isQwv57'
     SMART_ROLLUP_COMMITMENT_HASH: str    = 'src12UJzB8mg7yU6nWPzicH7ofJbFjyJEbHvwtZdfRXi8DQHNp1LY8'
@@ -92,7 +92,7 @@ class Watermark(IntEnum):
 
 
 class MichelineExpr(Message):
-    """Class representing a tezos micheline expression."""
+    """Class representing a mavryk micheline expression."""
 
     expr: Micheline
 
@@ -107,7 +107,7 @@ class MichelineExpr(Message):
 
 
 class OperationBuilder(ContentMixin):
-    """Class representing to extends and fix pytezos.ContentMixin."""
+    """Class representing to extends and fix pymavryk.ContentMixin."""
 
     def delegation(self, delegate, *args, **kwargs):
         delegation = super().delegation(delegate, *args, **kwargs)
@@ -125,18 +125,18 @@ class OperationBuilder(ContentMixin):
             fee: int = 0,
             gas_limit: int = 0,
             storage_limit: int = 0):
-        """Build a Tezos set-deposit-limit."""
+        """Build a Mavryk set-deposit-limit."""
         content = {
             'kind': 'set_deposit_limit',
             'source': source,
-            'fee': format_mutez(fee),
+            'fee': format_mumav(fee),
             'counter': str(counter),
             'gas_limit': str(gas_limit),
             'storage_limit': str(storage_limit),
         }
 
         if limit is not None:
-            content['limit'] = format_mutez(limit)
+            content['limit'] = format_mumav(limit)
 
         return self.operation(content)
 
@@ -149,12 +149,12 @@ class OperationBuilder(ContentMixin):
             fee: int = 0,
             gas_limit: int = 0,
             storage_limit: int = 0):
-        """Build a Tezos increase-paid-storage."""
+        """Build a Mavryk increase-paid-storage."""
         return self.operation(
             {
                 'kind': 'increase_paid_storage',
                 'source': source,
-                'fee': format_mutez(fee),
+                'fee': format_mumav(fee),
                 'counter': str(counter),
                 'gas_limit': str(gas_limit),
                 'storage_limit': str(storage_limit),
@@ -171,12 +171,12 @@ class OperationBuilder(ContentMixin):
             fee: int = 0,
             gas_limit: int = 0,
             storage_limit: int = 0):
-        """Build a Tezos update-consensus-key."""
+        """Build a Mavryk update-consensus-key."""
         return self.operation(
             {
                 'kind': 'update_consensus_key',
                 'source': source,
-                'fee': format_mutez(fee),
+                'fee': format_mumav(fee),
                 'counter': str(counter),
                 'gas_limit': str(gas_limit),
                 'storage_limit': str(storage_limit),
@@ -195,11 +195,11 @@ class OperationBuilder(ContentMixin):
             fee: int = 0,
             gas_limit: int = 0,
             storage_limit: int = 0):
-        """Build a Tezos smart rollup originate."""
+        """Build a Mavryk smart rollup originate."""
         content = {
             'kind': 'smart_rollup_originate',
             'source': source,
-            'fee': format_mutez(fee),
+            'fee': format_mumav(fee),
             'counter': str(counter),
             'gas_limit': str(gas_limit),
             'storage_limit': str(storage_limit),
@@ -214,7 +214,7 @@ class OperationBuilder(ContentMixin):
         return self.operation(content)
 
 class OperationForge:
-    """Class to helps forging Tezos operation."""
+    """Class to helps forging Mavryk operation."""
 
     # Insert new reserved entrypoint
     reserved_entrypoints['stake'] = b'\x06'
@@ -240,9 +240,9 @@ class OperationForge:
 
     @staticmethod
     def proposals(content: Dict[str, Any]) -> bytes:
-        """Forge a Tezos proposals."""
+        """Forge a Mavryk proposals."""
         res = forge_tag(operation_tags[content['kind']])
-        res += forge_address(content['source'], tz_only=True)
+        res += forge_address(content['source'], mv_only=True)
         res += forge_int32(int(content['period']))
         res += forge_array(b''.join(map(forge_base58, content['proposals'])))
         return res
@@ -251,9 +251,9 @@ class OperationForge:
 
     @staticmethod
     def ballot(content: Dict[str, Any]) -> bytes:
-        """Forge a Tezos ballot."""
+        """Forge a Mavryk ballot."""
         res = forge_tag(operation_tags[content['kind']])
-        res += forge_address(content['source'], tz_only=True)
+        res += forge_address(content['source'], mv_only=True)
         res += forge_int32(int(content['period']))
         res += forge_base58(content['proposal'])
         res += forge_int_fixed(OperationForge.BALLOT_TAG[content['ballot']], 1)
@@ -261,9 +261,9 @@ class OperationForge:
 
     @staticmethod
     def set_deposit_limit(content: Dict[str, Any]) -> bytes:
-        """Forge a Tezos set-deposit-limit."""
+        """Forge a Mavryk set-deposit-limit."""
         res = forge_tag(operation_tags[content['kind']])
-        res += forge_address(content['source'], tz_only=True)
+        res += forge_address(content['source'], mv_only=True)
         res += forge_nat(int(content['fee']))
         res += forge_nat(int(content['counter']))
         res += forge_nat(int(content['gas_limit']))
@@ -279,9 +279,9 @@ class OperationForge:
 
     @staticmethod
     def increase_paid_storage(content: Dict[str, Any]) -> bytes:
-        """Forge a Tezos increase-paid-storage."""
+        """Forge a Mavryk increase-paid-storage."""
         res = forge_tag(operation_tags[content['kind']])
-        res += forge_address(content['source'], tz_only=True)
+        res += forge_address(content['source'], mv_only=True)
         res += forge_nat(int(content['fee']))
         res += forge_nat(int(content['counter']))
         res += forge_nat(int(content['gas_limit']))
@@ -292,9 +292,9 @@ class OperationForge:
 
     @staticmethod
     def update_consensus_key(content: Dict[str, Any]) -> bytes:
-        """Forge a Tezos update-consensus-key."""
+        """Forge a Mavryk update-consensus-key."""
         res = forge_tag(operation_tags[content['kind']])
-        res += forge_address(content['source'], tz_only=True)
+        res += forge_address(content['source'], mv_only=True)
         res += forge_nat(int(content['fee']))
         res += forge_nat(int(content['counter']))
         res += forge_nat(int(content['gas_limit']))
@@ -306,9 +306,9 @@ class OperationForge:
 
     @staticmethod
     def smart_rollup_originate(content: Dict[str, Any]) -> bytes:
-        """Forge a Tezos smart rollup originate."""
+        """Forge a Mavryk smart rollup originate."""
         res = forge_tag(operation_tags[content['kind']])
-        res += forge_address(content['source'], tz_only=True)
+        res += forge_address(content['source'], mv_only=True)
         res += forge_nat(int(content['fee']))
         res += forge_nat(int(content['counter']))
         res += forge_nat(int(content['gas_limit']))
@@ -322,7 +322,7 @@ class OperationForge:
         if content.get('whitelist') is not None:
             res += forge_bool(True)
             res += forge_array(b''.join(
-                forge_address(pkh, tz_only=True)
+                forge_address(pkh, mv_only=True)
                 for pkh in content['whitelist']
             ))
         else:
@@ -331,7 +331,7 @@ class OperationForge:
         return res
 
 class Operation(Message, OperationBuilder):
-    """Class representing a tezos operation."""
+    """Class representing a mavryk operation."""
 
     branch: str
 
@@ -351,7 +351,7 @@ class Operation(Message, OperationBuilder):
         return raw
 
 class Proposals(Operation):
-    """Class representing a tezos proposals."""
+    """Class representing a mavryk proposals."""
 
     proposals_: List[str]
     source: str
@@ -377,7 +377,7 @@ class Proposals(Operation):
         )
 
 class Ballot(Operation):
-    """Class representing a tezos ballot."""
+    """Class representing a mavryk ballot."""
 
     proposal : str
     ballot_ : str
@@ -407,7 +407,7 @@ class Ballot(Operation):
         )
 
 class FailingNoop(Operation):
-    """Class representing a tezos failing-noop."""
+    """Class representing a mavryk failing-noop."""
 
     message: str
 
@@ -419,7 +419,7 @@ class FailingNoop(Operation):
         return OperationForge.failing_noop(self.failing_noop(self.message))
 
 class ManagerOperation(Operation):
-    """Class representing a tezos manager operation."""
+    """Class representing a mavryk manager operation."""
 
     source: str
     fee: int
@@ -442,7 +442,7 @@ class ManagerOperation(Operation):
         Operation.__init__(self, **kwargs)
 
 class OperationGroup(Operation):
-    """Class representing a group of tezos manager operation."""
+    """Class representing a group of mavryk manager operation."""
 
     operations: List[ManagerOperation]
 
@@ -456,7 +456,7 @@ class OperationGroup(Operation):
         return b''.join(map(lambda op: op.forge(), self.operations))
 
 class Reveal(ManagerOperation):
-    """Class representing a tezos reveal."""
+    """Class representing a mavryk reveal."""
 
     public_key: str
 
@@ -479,7 +479,7 @@ class Reveal(ManagerOperation):
         )
 
 class Transaction(ManagerOperation):
-    """Class representing a tezos transaction."""
+    """Class representing a mavryk transaction."""
 
     destination: str
     amount: int
@@ -514,7 +514,7 @@ class Transaction(ManagerOperation):
         )
 
 class Origination(ManagerOperation):
-    """Class representing a tezos origination."""
+    """Class representing a mavryk origination."""
 
     code: Micheline
     storage: Micheline
@@ -549,7 +549,7 @@ class Origination(ManagerOperation):
         )
 
 class Delegation(ManagerOperation):
-    """Class representing a tezos delegation."""
+    """Class representing a mavryk delegation."""
 
     delegate: Optional[str]
 
@@ -572,7 +572,7 @@ class Delegation(ManagerOperation):
         )
 
 class RegisterGlobalConstant(ManagerOperation):
-    """Class representing a tezos register global constant."""
+    """Class representing a mavryk register global constant."""
 
     value: Micheline
 
@@ -595,7 +595,7 @@ class RegisterGlobalConstant(ManagerOperation):
         )
 
 class SetDepositLimit(ManagerOperation):
-    """Class representing a tezos set deposit limit."""
+    """Class representing a mavryk set deposit limit."""
 
     limit: Optional[int]
 
@@ -618,7 +618,7 @@ class SetDepositLimit(ManagerOperation):
         )
 
 class IncreasePaidStorage(ManagerOperation):
-    """Class representing a tezos increase paid storage."""
+    """Class representing a mavryk increase paid storage."""
 
     amount: int
     destination: str
@@ -645,7 +645,7 @@ class IncreasePaidStorage(ManagerOperation):
         )
 
 class UpdateConsensusKey(ManagerOperation):
-    """Class representing a tezos update consensus key."""
+    """Class representing a mavryk update consensus key."""
 
     pk: str
 
@@ -668,7 +668,7 @@ class UpdateConsensusKey(ManagerOperation):
         )
 
 class TransferTicket(ManagerOperation):
-    """Class representing a tezos transfer ticket."""
+    """Class representing a mavryk transfer ticket."""
 
     ticket_contents: Micheline
     ticket_ty: Micheline
@@ -711,7 +711,7 @@ class TransferTicket(ManagerOperation):
         )
 
 class ScRollupOriginate(ManagerOperation):
-    """Class representing a tezos smart rollup originate."""
+    """Class representing a mavryk smart rollup originate."""
 
     pvm_kind: str
     kernel: str
@@ -746,7 +746,7 @@ class ScRollupOriginate(ManagerOperation):
         )
 
 class ScRollupAddMessage(ManagerOperation):
-    """Class representing a tezos smart rollup add message."""
+    """Class representing a mavryk smart rollup add message."""
 
     message: List[bytes]
 
@@ -769,7 +769,7 @@ class ScRollupAddMessage(ManagerOperation):
         )
 
 class ScRollupExecuteOutboxMessage(ManagerOperation):
-    """Class representing a tezos smart rollup execute outbox message."""
+    """Class representing a mavryk smart rollup execute outbox message."""
 
     rollup: str
     cemented_commitment: str

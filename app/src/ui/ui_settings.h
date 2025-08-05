@@ -4,7 +4,7 @@
 
    With code excerpts from:
     - Legacy Tezos app, Copyright 2019 Obsidian Systems
-    - Legacy Tezos app, Copyright 2023 Ledger
+    - Legacy Mavryk app, Copyright 2023 Ledger
     - Ledger Blue sample apps, Copyright 2016 Ledger
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@
 typedef struct {
     char expert_mode_state[10];  /// Expert mode text: "ENABLED", "DISABLED"
     char blindsign_state_desc[14];  /// Blindsigning text: "ON" , "OFF"
-} tz_ui_settings_t;
+} mv_ui_settings_t;
 #endif
 
 /**

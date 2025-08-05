@@ -3,7 +3,7 @@ setuptools
 pkginfo
 cryptography
 base58
-pytezos==3.14.0
+pymavryk==3.12.2
 GitPython
 pytest-xdist
 ragger[tests,speculos,ledgerwallet]==1.24.0

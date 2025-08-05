@@ -4,7 +4,7 @@
 
    With code excerpts from:
     - Legacy Tezos app, Copyright 2019 Obsidian Systems
-    - Legacy Tezos app, Copyright 2023 Ledger
+    - Legacy Mavryk app, Copyright 2023 Ledger
     - Ledger Blue sample apps, Copyright 2016 Ledger
 
    Licensed under the Apache License, Version 2.0 (the "License");

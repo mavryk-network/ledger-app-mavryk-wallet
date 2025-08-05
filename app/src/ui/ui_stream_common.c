@@ -23,9 +23,9 @@
 #define G_stream global.ui.stream
 
 size_t
-tz_ui_stream_push_all(tz_ui_cb_type_t cb_type, const char *title,
-                      const char *value, tz_ui_layout_type_t layout_type,
-                      tz_ui_icon_t icon)
+mv_ui_stream_push_all(mv_ui_cb_type_t cb_type, const char *title,
+                      const char *value, mv_ui_layout_type_t layout_type,
+                      mv_ui_icon_t icon)
 {
     size_t obuflen;
     size_t i = 0;
@@ -34,7 +34,7 @@ tz_ui_stream_push_all(tz_ui_cb_type_t cb_type, const char *title,
 
     obuflen = strlen(value);
     do {
-        i += tz_ui_stream_push(cb_type, title, value + i, layout_type, icon);
+        i += mv_ui_stream_push(cb_type, title, value + i, layout_type, icon);
         PRINTF("[DEBUG] pushed %d in total\n", i);
     } while (i < obuflen);
 
@@ -43,18 +43,18 @@ tz_ui_stream_push_all(tz_ui_cb_type_t cb_type, const char *title,
 }
 
 size_t
-tz_ui_stream_push(tz_ui_cb_type_t cb_type, const char *title,
-                  const char *value, tz_ui_layout_type_t layout_type,
-                  tz_ui_icon_t icon)
+mv_ui_stream_push(mv_ui_cb_type_t cb_type, const char *title,
+                  const char *value, mv_ui_layout_type_t layout_type,
+                  mv_ui_icon_t icon)
 {
-    return tz_ui_stream_pushl(cb_type, title, value, -1, layout_type, icon);
+    return mv_ui_stream_pushl(cb_type, title, value, -1, layout_type, icon);
 }
 
-tz_ui_cb_type_t
-tz_ui_stream_get_cb_type(void)
+mv_ui_cb_type_t
+mv_ui_stream_get_cb_type(void)
 {
-    tz_ui_stream_t *s      = &G_stream;
-    size_t          bucket = s->current % TZ_UI_STREAM_HISTORY_SCREENS;
+    mv_ui_stream_t *s      = &G_stream;
+    size_t          bucket = s->current % MV_UI_STREAM_HISTORY_SCREENS;
 
     return s->screens[bucket].cb_type;
 }
@@ -64,23 +64,23 @@ push_str(const char *text, size_t len, char **out)
 {
     bool can_fit = false;
 
-    TZ_PREAMBLE(("%s", text));
+    MV_PREAMBLE(("%s", text));
 
-    TZ_CHECK(ui_strings_can_fit(len, &can_fit));
+    MV_CHECK(ui_strings_can_fit(len, &can_fit));
     while (!can_fit) {
-        TZ_CHECK(drop_last_screen());
-        TZ_CHECK(ui_strings_can_fit(len, &can_fit));
+        MV_CHECK(drop_last_screen());
+        MV_CHECK(ui_strings_can_fit(len, &can_fit));
     }
 
-    TZ_CHECK(ui_strings_push(text, len, out));
+    MV_CHECK(ui_strings_push(text, len, out));
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 
 void
-tz_ui_stream_close(void)
+mv_ui_stream_close(void)
 {
-    tz_ui_stream_t *s = &G_stream;
+    mv_ui_stream_t *s = &G_stream;
 
     FUNC_ENTER(("full=%d", s->full));
     if (s->full) {

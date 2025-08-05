@@ -1,4 +1,4 @@
-/* Tezos Embedded C parser for Ledger - Big num parser
+/* Mavryk Embedded C parser for Ledger - Big num parser
 
    Copyright 2023 Nomadic Labs <contact@nomadic-labs.com>
    Copyright 2023 Functori <contact@functori.com>
@@ -18,8 +18,8 @@
 #include "num_parser.h"
 
 void
-tz_parse_num_state_init(tz_num_parser_buffer *buffers,
-                        tz_num_parser_regs   *regs)
+mv_parse_num_state_init(mv_num_parser_buffer *buffers,
+                        mv_num_parser_regs   *regs)
 {
     buffers->bytes[0] = 0;
     regs->size        = 0;
@@ -27,8 +27,8 @@ tz_parse_num_state_init(tz_num_parser_buffer *buffers,
     regs->stop        = 0;
 }
 
-tz_parser_result
-tz_parse_num_step(tz_num_parser_buffer *buffers, tz_num_parser_regs *regs,
+mv_parser_result
+mv_parse_num_step(mv_num_parser_buffer *buffers, mv_num_parser_regs *regs,
                   uint8_t b, bool natural)
 {
     uint8_t v, cont, s;
@@ -46,40 +46,40 @@ tz_parse_num_step(tz_num_parser_buffer *buffers, tz_num_parser_regs *regs,
     int     lo_idx = regs->size / 8;
     int     hi_idx = lo_idx + 1;
     buffers->bytes[lo_idx] |= lo;
-    if (hi_idx >= (TZ_NUM_BUFFER_SIZE / 8)) {
+    if (hi_idx >= (MV_NUM_BUFFER_SIZE / 8)) {
         // accept and dismiss a few trailing zeroes
         if (hi || cont) {
-            return TZ_ERR_TOO_LARGE;
+            return MV_ERR_TOO_LARGE;
         }
-        regs->size = TZ_NUM_BUFFER_SIZE;
+        regs->size = MV_NUM_BUFFER_SIZE;
     } else {
         buffers->bytes[hi_idx] = hi;
         regs->size += s;
     }
     if (!cont) {
         regs->stop = true;
-        tz_format_decimal(buffers->bytes, (regs->size + 7) / 8,
+        mv_format_decimal(buffers->bytes, (regs->size + 7) / 8,
                           buffers->decimal, sizeof(buffers->decimal));
     }
-    return TZ_CONTINUE;
+    return MV_CONTINUE;
 }
 
-tz_parser_result
-tz_parse_int_step(tz_num_parser_buffer *buffers, tz_num_parser_regs *regs,
+mv_parser_result
+mv_parse_int_step(mv_num_parser_buffer *buffers, mv_num_parser_regs *regs,
                   uint8_t b)
 {
-    return tz_parse_num_step(buffers, regs, b, 0);
+    return mv_parse_num_step(buffers, regs, b, 0);
 }
 
-tz_parser_result
-tz_parse_nat_step(tz_num_parser_buffer *buffers, tz_num_parser_regs *regs,
+mv_parser_result
+mv_parse_nat_step(mv_num_parser_buffer *buffers, mv_num_parser_regs *regs,
                   uint8_t b)
 {
-    return tz_parse_num_step(buffers, regs, b, 1);
+    return mv_parse_num_step(buffers, regs, b, 1);
 }
 
 bool
-tz_string_to_mutez(const char *str, uint64_t *res)
+mv_string_to_mumav(const char *str, uint64_t *res)
 {
     if ((str == NULL) || (res == NULL)) {
         PRINTF("[ERROR] Null parameter\n");

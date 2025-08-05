@@ -27,7 +27,7 @@ let pp_hex_bytes ppf bytes = Format.fprintf ppf "%a" Hex.pp (Hex.of_bytes bytes)
 (** General *)
 
 let start_speculos ppf mnemonic =
-  Format.fprintf ppf "start_speculos \"%a\"@." Tezos_client_base.Bip39.pp
+  Format.fprintf ppf "start_speculos \"%a\"@." Mavryk_client_base.Bip39.pp
     mnemonic
 
 let expect_full_text ppf l =
@@ -80,7 +80,7 @@ let quit_app ppf () = Format.fprintf ppf "quit_app@."
 
 let check_tlv_signature ppf ~prefix ~suffix pk message =
   Format.fprintf ppf "check_tlv_signature %a %a %a %a" pp_hex_bytes prefix
-    pp_hex_bytes suffix Tezos_crypto.Signature.Public_key.pp pk pp_hex_bytes
+    pp_hex_bytes suffix Mavryk_crypto.Signature.Public_key.pp pk pp_hex_bytes
     message
 
 (** Specific *)
@@ -118,14 +118,14 @@ let need_expert_mode_screen ?(expert_mode = true) title =
   else { title; contents = "Needs Expert mode" }
 
 let sign ppf ~signer:Apdu.Signer.({ sk; pk; _ } as signer) ~watermark bin =
-  let watermark = Tezos_crypto.Signature.bytes_of_watermark watermark in
+  let watermark = Mavryk_crypto.Signature.bytes_of_watermark watermark in
   let bin = Bytes.cat watermark bin in
   let packets = Apdu.sign ~signer bin in
   let bin_accept_check ppf () =
-    let bin_hash = Tezos_crypto.Blake2B.(to_bytes (hash_bytes [ bin ])) in
+    let bin_hash = Mavryk_crypto.Blake2B.(to_bytes (hash_bytes [ bin ])) in
     if Apdu.Curve.(deterministic_sig (of_sk sk)) then
       let sign =
-        Tezos_crypto.Signature.to_bytes (Tezos_crypto.Signature.sign sk bin)
+        Mavryk_crypto.Signature.to_bytes (Mavryk_crypto.Signature.sign sk bin)
       in
       expect_apdu_return ppf
         (Bytes.concat Bytes.empty [ bin_hash; sign; Apdu.success ])
@@ -144,8 +144,8 @@ let sign ppf ~signer:Apdu.Signer.({ sk; pk; _ } as signer) ~watermark bin =
   in
   send_async_apdus ppf async_apdus
 
-open Tezos_protocol_018_Proxford
-open Tezos_micheline
+open Mavryk_protocol_001_PtAtLas
+open Mavryk_micheline
 
 let rec pp_node ~wrap ppf (node : Protocol.Script_repr.node) =
   match node with
@@ -181,7 +181,7 @@ let pp_opt_field pp ppf = function
   | None -> Format.fprintf ppf "Field unset"
   | Some v -> Format.fprintf ppf "%a" pp v
 
-let pp_tz ppf tz = Format.fprintf ppf "%a XTZ" Protocol.Alpha_context.Tez.pp tz
+let pp_mv ppf mv = Format.fprintf ppf "%a MVRK" Protocol.Alpha_context.Tez.pp mv
 
 let pp_lazy_expr ppf lazy_expr =
   let expr = Result.get_ok @@ Protocol.Script_repr.force_decode lazy_expr in
@@ -200,7 +200,7 @@ let pp_serialized_proof ppf proof =
   pp_string_binary ppf proof
 
 let operation_to_screens
-    ( (_shell : Tezos_base.Operation.shell_header),
+    ( (_shell : Mavryk_base.Operation.shell_header),
       (Contents_list contents : Protocol.Alpha_context.packed_contents_list) ) =
   let open Protocol.Alpha_context in
   let make_screen ~title fmt = Format.kasprintf (make_screen ~title) fmt in
@@ -228,8 +228,8 @@ let operation_to_screens
         [
           make_screen ~title:operation_index "%s" kind;
           make_screen ~title:"Source" "%a"
-            Tezos_crypto.Signature.Public_key_hash.pp source;
-          make_screen ~title:"Fee" "%a" pp_tz fee;
+            Mavryk_crypto.Signature.Public_key_hash.pp source;
+          make_screen ~title:"Fee" "%a" pp_mv fee;
           make_screen ~title:"Storage limit" "%s" (Z.to_string storage_limit);
         ]
       in
@@ -240,7 +240,7 @@ let operation_to_screens
         aux ~kind:"Delegation"
           [
             make_screen ~title:"Delegate" "%a"
-              (pp_opt_field Tezos_crypto.Signature.Public_key_hash.pp)
+              (pp_opt_field Mavryk_crypto.Signature.Public_key_hash.pp)
               public_key_hash_opt;
           ]
     | Increase_paid_storage { amount_in_bytes; destination } ->
@@ -253,9 +253,9 @@ let operation_to_screens
     | Origination { delegate; script = { code; storage }; credit } ->
         aux ~kind:"Origination"
         @@ [
-             make_screen ~title:"Balance" "%a" pp_tz credit;
+             make_screen ~title:"Balance" "%a" pp_mv credit;
              make_screen ~title:"Delegate" "%a"
-               (pp_opt_field Tezos_crypto.Signature.Public_key_hash.pp)
+               (pp_opt_field Mavryk_crypto.Signature.Public_key_hash.pp)
                delegate;
            ]
         @ first_expert_mode_screen "Code"
@@ -271,12 +271,12 @@ let operation_to_screens
         aux ~kind:"Reveal"
           [
             make_screen ~title:"Public key" "%a"
-              Tezos_crypto.Signature.Public_key.pp public_key;
+              Mavryk_crypto.Signature.Public_key.pp public_key;
           ]
     | Set_deposits_limit tez_opt ->
         aux ~kind:"Set deposit limit"
           [
-            make_screen ~title:"Staking limit" "%a" (pp_opt_field pp_tz) tez_opt;
+            make_screen ~title:"Staking limit" "%a" (pp_opt_field pp_mv) tez_opt;
           ]
     | Transaction { amount; entrypoint; destination; parameters } ->
         let parameter =
@@ -291,7 +291,7 @@ let operation_to_screens
         in
         aux ~kind:"Transaction"
           ([
-             make_screen ~title:"Amount" "%a" pp_tz amount;
+             make_screen ~title:"Amount" "%a" pp_mv amount;
              make_screen ~title:"Destination" "%a" Contract.pp destination;
            ]
           @ parameter)
@@ -312,7 +312,7 @@ let operation_to_screens
         aux ~kind:"Set consensus key"
           [
             make_screen ~title:"Public key" "%a"
-              Tezos_crypto.Signature.Public_key.pp public_key;
+              Mavryk_crypto.Signature.Public_key.pp public_key;
           ]
     | Sc_rollup_add_messages { messages } ->
         aux ~kind:"SR: send messages"
@@ -335,7 +335,7 @@ let operation_to_screens
           | None | Some [] -> []
           | Some whitelist ->
               make_screens ~title:"Whitelist"
-                Tezos_crypto.Signature.Public_key_hash.pp whitelist
+                Mavryk_crypto.Signature.Public_key_hash.pp whitelist
         in
         aux ~kind:"SR: originate"
         @@ [ make_screen ~title:"Kind" "%a" Sc_rollup.Kind.pp kind ]
@@ -359,19 +359,19 @@ let operation_to_screens
         aux ~kind:"Proposals"
           ([
              make_screen ~title:"Source" "%a"
-               Tezos_crypto.Signature.Public_key_hash.pp source;
+               Mavryk_crypto.Signature.Public_key_hash.pp source;
              make_screen ~title:"Period" "%ld" period;
            ]
-          @ make_screens ~title:"Proposal" Tezos_crypto.Hashed.Protocol_hash.pp
+          @ make_screens ~title:"Proposal" Mavryk_crypto.Hashed.Protocol_hash.pp
               proposals)
     | Ballot { source; period; proposal; ballot } ->
         aux ~kind:"Ballot"
           [
             make_screen ~title:"Source" "%a"
-              Tezos_crypto.Signature.Public_key_hash.pp source;
+              Mavryk_crypto.Signature.Public_key_hash.pp source;
             make_screen ~title:"Period" "%ld" period;
             make_screen ~title:"Proposal" "%a"
-              Tezos_crypto.Hashed.Protocol_hash.pp proposal;
+              Mavryk_crypto.Hashed.Protocol_hash.pp proposal;
             make_screen ~title:"Ballot" "%a" Vote.pp_ballot ballot;
           ]
     | Manager_operation _ | _ -> assert false
@@ -388,7 +388,7 @@ let operation_to_screens
   screen_of_operations 0 contents
 
 let mnemonic_of_string s =
-  Option.get @@ Tezos_client_base.Bip39.of_words @@ String.split_on_char ' ' s
+  Option.get @@ Mavryk_client_base.Bip39.of_words @@ String.split_on_char ' ' s
 
 let zebra =
   mnemonic_of_string
@@ -421,114 +421,114 @@ let path_2_11_5 = [ 2; 11; 5 ]
 let path_17_8_6_9 = [ 17; 8; 6; 9 ]
 let path_9_12_13_8_78 = [ 9; 12; 13; 8; 78 ]
 
-let tz1_signers =
+let mv1_signers =
   [
-    (* tz1dyX3B1CFYa2DfdFLyPtiJCfQRUgPVME6E *)
+    (* mv1SLzLmKZYu9HztmZupdiQKMgGQ34wnaR4c *)
     Apdu.Signer.make ~mnemonic:zebra ~path:default_path
       ~sk:"edsk2tUyhVvGj9B1S956ZzmaU4bC9J7t8xVBH52fkAoZL25MHEwacd";
-    (* tz1NxVR43U25oudr9QPCjXycDNaH1arZZ5fL *)
+    (* mv1BKxieMqKSPBR5Hix3yMfdNPSFZyPXeus8 *)
     Apdu.Signer.make ~mnemonic:seed12 ~path:path_0
       ~sk:"edsk3xdyqj4YH64DKQ3ihVktjs2x5DagcoP3yNbdqPg3FAibHM1EU2";
-    (* tz1PVqTSCw2JKxXcwSLgd5Zad18djpvcvPMF *)
+    (* mv1BsJm2XJKeuEJr5kuXruFbn1zcJDRNiVZt *)
     Apdu.Signer.make ~mnemonic:seed15 ~path:path_2_11_5
       ~sk:"edsk3qtimAD78T5PBdkAXwjPHYa1tEXJ3jmMcVgNSXuXs9wjsnWnrX";
-    (* tz1aex9GimxigprKi8MQK3j6sSisDpbtRBXw *)
+    (* mv1P2RSs39G5G6dYrSvFYsR82TaqnD6CDHio *)
     Apdu.Signer.make ~mnemonic:seed21 ~path:path_17_8_6_9
       ~sk:"edsk3xW7FFGdpFTUzqd2dbRVDGt6vK2XrRfQU5VjXKFABdN3mbmRkH";
-    (* tz1ZAxU3Q39BSJWoHzEcPmt8U36iHmdCcZ2K *)
+    (* mv1MYRmdiQSY1aJ2SJoTdba9d3xgrA8ytQ4n *)
     Apdu.Signer.make ~mnemonic:seed24 ~path:path_9_12_13_8_78
       ~sk:"edsk2vPx2hnTsef6EeuD846PoHTja7dM96YtZ26S3Xz4KP36a2m6k1";
-    (* tz1NKmt8bGYc5guuJyXPTkEbvBHXHBHVALhc *)
+    (* mv1AhFBiudqxexh8TJ6EhZvd5C9VqZhKCG4h *)
     Apdu.Signer.make ~mnemonic:seed12 ~path:default_path
       ~sk:"edsk3q2GyniEU2jGxw7uLFPys4AfALs96VE64d7kr7NXhtN4w8RUue";
-    (* tz1aKnxJdtJQ89Hp5HeXMxgJnnyNHjyAUmSb *)
+    (* mv1NhGFtxFbkhR53DcDNbnNKwoqLr8UAVyEL *)
     Apdu.Signer.make ~mnemonic:seed15 ~path:path_0
       ~sk:"edsk35nft3nYCBpzdXqKCL1VPpVTa3NFTDGj7QqSxc1auzkjz2znTW";
-    (* tz1VeeXEdqU9TjfAvPNKpUopB1jXJAZh9egp *)
+    (* mv1J27ppxCmW31SQ4hwB4JVqL2bVrZ3A8Kvh *)
     Apdu.Signer.make ~mnemonic:seed21 ~path:path_2_11_5
       ~sk:"edsk3VTt2ikBiYrt1LKM9juE71Tfg6YmjdUGR4PzT2wuV5uEJ9vTDM";
-    (* tz1dHwBzesqaqdNdsMGDu2xjAPvirzmx4BTL *)
+    (* mv1RfQVayF8wQu9s1fq58rekKQnhRPEjqxYR *)
     Apdu.Signer.make ~mnemonic:seed24 ~path:path_17_8_6_9
       ~sk:"edsk3mfq95CqPnQgcj38KpAz8taNjQY5tQYvNRKojXLKKjhZC72z2H";
-    (* tz1ez9eEyAxuDZACjHdCXym43UQDdMNa3LEL *)
+    (* mv1TMcwqHYGFnpwRscC3moT5CVGCBjsh1c1h *)
     Apdu.Signer.make ~mnemonic:zebra ~path:path_9_12_13_8_78
       ~sk:"edsk3eZBgFAf1VtdibfxoCcihxXje9S3th7jdEgVA2kHG82EKYNKNm";
   ]
 
 let tz2_signers =
   [
-    (* tz2GB5YHqF4UzQ8GP5yUqdhY9oVWRXCY2hPU *)
+    (* mv2Tt9pzSu522YivfVZkQmsgabyzErLLy7x9 *)
     Apdu.Signer.make ~mnemonic:zebra ~path:default_path
       ~sk:"spsk2Pfx9chqXVbz2tW7ze4gGU4RfaiK3nSva77bp69zHhFho2zTze";
-    (* tz2ABzm53J2rYC2JH9tHcKdHHupHvmzbpKBs *)
+    (* mv2Mu53mex3PaLcxZZUZBToRiiJmk7ApvV23 *)
     Apdu.Signer.make ~mnemonic:seed12 ~path:path_0
       ~sk:"spsk3AexEMWMxpMTuYCu9X4CXuksjhbzg1CDGSromY8Vi4tWJp2cyX";
-    (* tz2E5kDU7kYqDVm3tDYWE5Hn1NadMbGgjGP1 *)
+    (* mv2RnpWAjQZNFeMiAd8moDTvSB57AvRR3M54 *)
     Apdu.Signer.make ~mnemonic:seed15 ~path:path_2_11_5
       ~sk:"spsk1nQZNy2MmgEN1RJ2TYvWHb217wep34hKLHXmRWZ8acnydhVz1u";
-    (* tz2SDC3uomE2dYkWrjywGttCXqbgRPnKiTbc *)
+    (* mv2dvGLcRREZfhMB99aCr34Lxe6AEiwMJyKo *)
     Apdu.Signer.make ~mnemonic:seed21 ~path:path_17_8_6_9
       ~sk:"spsk1i8iYLWU3hJqXrQ15PNnTi3jHkQePDPatWyCpViC1hqfVRcn4t";
-    (* tz2JmCpSXB3UfcvJ81MvfKE5wnnrwiDthkoK *)
+    (* mv2WUH798q41hmWxQQxCETQENbHLm3RhXdYy *)
     Apdu.Signer.make ~mnemonic:seed24 ~path:path_9_12_13_8_78
       ~sk:"spsk2Z8YhgcbTRy9DTFqjjgzjKF9GZja6L66nL7rZzN5z4THMXC1Ma";
-    (* tz2Ps3rRYoE9NQALtq3GP3q2xa4PGCyyEeYc *)
+    (* mv2ba898ATEgQYm1BEdXxC1BPNYs5Y9vVRbT *)
     Apdu.Signer.make ~mnemonic:seed12 ~path:default_path
       ~sk:"spsk1cWQyarGSriaDPeoFYMh4N5V2MVxZiM5cxUzWMW5FfqCCvyy4z";
-    (* tz2BuPTGejxZFTiHmqxZn2iY38W1Qt9FA73o *)
+    (* mv2PcTjyGPy6HcJx4FYqMAtgTvzVEDJkadzn *)
     Apdu.Signer.make ~mnemonic:seed15 ~path:path_0
       ~sk:"spsk2RCfKCD8Wq9P37LTotWD1F1oCvFFSzUgMSm5aEyaWndyy7gDys";
-    (* tz2RABsKSVgw5fgAJobpvZV1QLrtwBFBZzfb *)
+    (* mv2csGA249hU7pGpbDC6Vhf9q9MNkWMEhiRt *)
     Apdu.Signer.make ~mnemonic:seed21 ~path:path_2_11_5
       ~sk:"spsk2DMEFbbzny6LjSXoqjJMgu1QQmHjPjb3QQcyYyY4AWjUDEvV5p";
-    (* tz2HTV4fDogX6gqrdv64y6iRQb16gxqdQetR *)
+    (* mv2VAZMMqTh48qSWvKgLYEtZqPVaWHzoJ53s *)
     Apdu.Signer.make ~mnemonic:seed24 ~path:path_17_8_6_9
       ~sk:"spsk2nkrtUc4aYtErsvfoZcuj96HCV2KXtKfk6dbJLRZG6MQQnUEjp";
-    (* tz2XUkdzf3jbAxsDFd4N2iWS5BtB5UfAZf73 *)
+    (* mv2jBpvhGhk8D7TsY2edbrgaVzNetop2QXzM *)
     Apdu.Signer.make ~mnemonic:zebra ~path:path_9_12_13_8_78
       ~sk:"spsk2TDhUqfr8HV5643ubsEod5B8iWH7dAEE46mimatSQPs9uJaUsW";
   ]
 
 let tz3_signers =
   [
-    (* tz3UMNyvQeMj6mQSftW2aV2XaWd3afTAM1d5 *)
+    (* mv3GirHWj1f5g3BfpD4spJiYjXV293xmeEF1 *)
     Apdu.Signer.make ~mnemonic:zebra ~path:default_path
       ~sk:"p2sk2zPCmKo6zTSjPbDHnLiHtPAqVRFrExN3oTvKGbu3C99Jyeyura";
-    (* tz3UCiS9hCP5Z4H4NY1Sh8MQFKGAR2dBwt8X *)
+    (* mv3GaBjk1ZgS8L4HWraHvx3RQL88yR8n3ygU *)
     Apdu.Signer.make ~mnemonic:seed12 ~path:path_0
       ~sk:"p2sk33tVU1LvLBLaPcvT35fedM5p2cqncRMntkjggXBNbzW78zd119";
-    (* tz3dXAtT2DC9uxJz3Kzd73aAf5u8Duk1U2L4 *)
+    (* mv3RteC3LaVWVE6DBeZULsGBp6m6nJFiF71g *)
     Apdu.Signer.make ~mnemonic:seed15 ~path:path_2_11_5
       ~sk:"p2sk2eUahqgSwd7Dd7NgnRgDSpZjbBNkUZF16vNuDGTQvYvznWiWkB";
-    (* tz3Mo3LbcwtMZcNELoVcqMQcE6Lkt2wh1N6a *)
+    (* mv3AAWeBwKBi8t9TV84U5B6dP7CjSRTNrynH *)
     Apdu.Signer.make ~mnemonic:seed21 ~path:path_17_8_6_9
       ~sk:"p2sk47tCEh6jyBwzXbunTVik9cr1rBHQ1bK6tFUztdyY8UNM1sFMuU";
-    (* tz3NU86vCJ9hYLVRnrQybCFrGpAxJeFgKNSb *)
+    (* mv3AqbQWWfT47cGewAypq1wsRq2vs2oiiNoh *)
     Apdu.Signer.make ~mnemonic:seed24 ~path:path_9_12_13_8_78
       ~sk:"p2sk4AwmdZy89ZGb4qfrSZeDxfTP75b7q8gsWBBuYMQf7XqtxS7V6H";
-    (* tz3YHnyWXEePpJSN4Wo9zTGrujVVJFvhSMoW *)
+    (* mv3LfGH6qbwkPaDbCqN1EGxt4kMTreRhMK49 *)
     Apdu.Signer.make ~mnemonic:seed12 ~path:default_path
       ~sk:"p2sk4ASENf9NtKzvNV9psrM5sLCb3SduXpgF4Gw92pX3EeKWNszcQ9";
-    (* tz3RGUhYMGXgguVwNVV6mjhyuAx8z1ZwbKLw *)
+    (* mv3Ddx18fdq3GBHAWp3x1ZQ14Bp7YQ274FFW *)
     Apdu.Signer.make ~mnemonic:seed15 ~path:path_0
       ~sk:"p2sk2uQBEEebh9Y1PGJASM1qauCeTMDLZxuLmYzK7qVwRAHUiZNyet";
-    (* tz3MLzYAp97KJAyBnDqfQmB5YE9VX1HbcX5v *)
+    (* mv39iTqm8WQfsSkQvYQWeas6hF1U5PnkJXQd *)
     Apdu.Signer.make ~mnemonic:seed21 ~path:path_2_11_5
       ~sk:"p2sk3a2kULUSRZuBhDJwNW4uzQxNm9BmuTYPd72CNrEPkhiXtM8eVn";
-    (* tz3eddqo9pvgVGirAoahe8swa9tJL5GQeAix *)
+    (* mv3T179PUCE34YW5K89YsxZxjAkGtTkNWoiP *)
     Apdu.Signer.make ~mnemonic:seed24 ~path:path_17_8_6_9
       ~sk:"p2sk4ByXhrxeFLPkgusLA1VSu19WhQqbuAd23Ynq7k8bb7TqyezRrS";
-    (* tz3XZs3igEN9SQcEXKcroC9GgA6JR4SAR1FK *)
+    (* mv3KwLMJzbfW1gPTfeBi31qHqAxGySugn1yr *)
     Apdu.Signer.make ~mnemonic:zebra ~path:path_9_12_13_8_78
       ~sk:"p2sk37UGsn84Lkbamg5JsKfmNXjkAcqt8Qic6eFTkGoVccP6KRPzse";
   ]
 
-let gen_signer = QCheck2.Gen.oneofl (tz1_signers @ tz2_signers @ tz3_signers)
+let gen_signer = QCheck2.Gen.oneofl (mv1_signers @ mv2_signers @ mv3_signers)
 
 let gen_expect_test_sign ?(expert_mode = false) ppf ~watermark bin screens =
   Format.fprintf ppf "# full input: %a@." pp_hex_bytes bin;
   let signer = QCheck2.Gen.generate1 ~rand:Gen_utils.random_state gen_signer in
-  Format.fprintf ppf "# signer: %a@." Tezos_crypto.Signature.Public_key_hash.pp
+  Format.fprintf ppf "# signer: %a@." Mavryk_crypto.Signature.Public_key_hash.pp
     signer.pkh;
   Format.fprintf ppf "# path: %a@." Apdu.Path.pp signer.path;
   start_speculos ppf signer.mnemonic;

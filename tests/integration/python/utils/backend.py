@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tezos app backend."""
+"""Mavryk app backend."""
 
 from contextlib import contextmanager
 from enum import IntEnum
@@ -184,15 +184,15 @@ def async_thread(function: Callable[..., RESPONSE]):
 
 MAX_APDU_SIZE: int = 235
 
-class TezosBackend(BackendInterface):
-    """Class representing the backen of the tezos app."""
+class MavrykBackend(BackendInterface):
+    """Class representing the backen of the mavryk app."""
 
     def _exchange(self,
                   ins: Union[Ins, int],
                   index: Union[Index, int] = Index.FIRST,
                   sig_type: Union[SigType, int, None] = None,
                   payload: bytes = b'') -> bytes:
-        """Override of `exchange` for the tezos app."""
+        """Override of `exchange` for the mavryk app."""
 
         assert len(payload) <= MAX_APDU_SIZE, f"Apdu too large {len(payload)}"
 
@@ -293,12 +293,12 @@ def with_retry(f, attempts=MAX_ATTEMPTS):
         # Give plenty of time for speculos to update - can take a long time on CI machines
         time.sleep(0.5)
 
-class SpeculosTezosBackend(TezosBackend, SpeculosBackend):
-    """Class representing Tezos app running on Speculos."""
+class SpeculosMavrykBackend(MavrykBackend, SpeculosBackend):
+    """Class representing Mavryk app running on Speculos."""
 
     # speculos can be slow to start up in a slow environment.
     # Here, we expect a little more
-    def __enter__(self) -> "SpeculosTezosBackend":
+    def __enter__(self) -> "SpeculosMavrykBackend":
         try:
             super().__enter__()
             return self

@@ -29,7 +29,7 @@
 #include "glyphs.h"
 
 UX_STEP_NOCB(ux_menu_ready_step, pnn,
-             {&C_tezos_16px, "Application", "is ready"});
+             {&C_mavryk_16px, "Application", "is ready"});
 UX_STEP_NOCB(ux_menu_version_step, bn, {"Version", APPVERSION});
 UX_STEP_CB(ux_menu_settings_step, pb, ui_settings_init(SETTINGS_HOME_PAGE),
            {&C_icon_coggle, "Settings"});
@@ -63,7 +63,7 @@ void
 ui_home_init(void)
 {
     FUNC_ENTER(("void"));
-    tz_ui_home_redisplay(INIT_HOME_PAGE);
+    mv_ui_home_redisplay(INIT_HOME_PAGE);
     FUNC_LEAVE();
 }
 #endif  // HAVE_NBGL

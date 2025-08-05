@@ -13,9 +13,9 @@
    See the License for the specific language governing permissions and
    limitations under the License. *)
 
-open Tezos_protocol_018_Proxford
-open Tezos_micheline
-open Tezos_benchmarks_proto_018_Proxford
+open Mavryk_protocol_001_PtAtLas
+open Mavryk_micheline
+open Mavryk_benchmarks_proto_018_Proxford
 
 let config =
   {
@@ -63,7 +63,7 @@ let vector =
                  ]))))
 
 let expr = Seq.append vector (Seq.concat (Seq.forever gen))
-let watermark = Tezos_crypto.Signature.Custom (Bytes.of_string "\x05")
+let watermark = Mavryk_crypto.Signature.Custom (Bytes.of_string "\x05")
 
 let encode expr =
   Data_encoding.Binary.to_bytes_exn Protocol.Script_repr.expr_encoding expr

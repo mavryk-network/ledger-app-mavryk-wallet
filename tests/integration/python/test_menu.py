@@ -24,14 +24,14 @@ import requests
 from ragger.firmware import Firmware
 from ragger.navigator import BaseNavInsID, NavIns, NavInsID
 
-from utils.backend import TezosBackend
-from utils.navigator import TezosNavigator, TezosNavInsID
+from utils.backend import MavrykBackend
+from utils.navigator import MavrykNavigator, MavrykNavInsID
 
 
-def test_home_menu(tezos_navigator: TezosNavigator, snapshot_dir: Path):
+def test_home_menu(mavryk_navigator: MavrykNavigator, snapshot_dir: Path):
     """Check home menu flow"""
     instructions: List[Union[NavIns, BaseNavInsID]] = []
-    if tezos_navigator._firmware.is_nano:
+    if mavryk_navigator._firmware.is_nano:
         instructions = [
             # Home
             NavInsID.RIGHT_CLICK,  # Version
@@ -40,54 +40,54 @@ def test_home_menu(tezos_navigator: TezosNavigator, snapshot_dir: Path):
         ]
     else:
         instructions = []
-    tezos_navigator.navigate(
+    mavryk_navigator.navigate(
         instructions=instructions,
         snap_path=snapshot_dir,
     )
 
 
-def test_settings_menu(tezos_navigator: TezosNavigator, snapshot_dir: Path):
+def test_settings_menu(mavryk_navigator: MavrykNavigator, snapshot_dir: Path):
     """Check settings menu flow"""
-    tezos_navigator.navigate_to_settings()
+    mavryk_navigator.navigate_to_settings()
     instructions: List[Union[NavIns, BaseNavInsID]] = []
-    if tezos_navigator._firmware.is_nano:
+    if mavryk_navigator._firmware.is_nano:
         instructions = [
             # Expert Mode
             NavInsID.RIGHT_CLICK,  # Blind Sign
             NavInsID.RIGHT_CLICK,  # Back
             NavInsID.BOTH_CLICK,  # Home
         ]
-    elif tezos_navigator._firmware == Firmware.STAX:
+    elif mavryk_navigator._firmware == Firmware.STAX:
         instructions = [
             NavInsID.USE_CASE_SETTINGS_NEXT,
-            TezosNavInsID.SETTINGS_EXIT,
+            MavrykNavInsID.SETTINGS_EXIT,
         ]
     else:
         instructions = [
             NavInsID.USE_CASE_SETTINGS_NEXT,
             NavInsID.USE_CASE_SETTINGS_NEXT,
-            TezosNavInsID.SETTINGS_EXIT,
+            MavrykNavInsID.SETTINGS_EXIT,
         ]
-    tezos_navigator.navigate(
+    mavryk_navigator.navigate(
         instructions=instructions,
         snap_path=snapshot_dir
     )
 
 
-def test_toggle_expert_mode(tezos_navigator: TezosNavigator, snapshot_dir: Path):
+def test_toggle_expert_mode(mavryk_navigator: MavrykNavigator, snapshot_dir: Path):
     """Check settings' expert_mode toggle"""
-    snap_idx = tezos_navigator.toggle_expert_mode(snap_path=snapshot_dir)
+    snap_idx = mavryk_navigator.toggle_expert_mode(snap_path=snapshot_dir)
     # Toggle back
-    tezos_navigator.toggle_expert_mode(snap_start_idx=snap_idx, snap_path=snapshot_dir)
+    mavryk_navigator.toggle_expert_mode(snap_start_idx=snap_idx, snap_path=snapshot_dir)
 
 
-def test_toggle_blindsign(tezos_navigator: TezosNavigator, snapshot_dir: Path):
+def test_toggle_blindsign(mavryk_navigator: MavrykNavigator, snapshot_dir: Path):
     """Check settings' blindsign toggle"""
-    snap_idx = tezos_navigator.toggle_blindsign(snap_path=snapshot_dir)
+    snap_idx = mavryk_navigator.toggle_blindsign(snap_path=snapshot_dir)
     # Toggle back
-    tezos_navigator.toggle_blindsign(snap_start_idx=snap_idx, snap_path=snapshot_dir)
+    mavryk_navigator.toggle_blindsign(snap_start_idx=snap_idx, snap_path=snapshot_dir)
 
-def test_quit(tezos_navigator: TezosNavigator, backend: TezosBackend):
+def test_quit(mavryk_navigator: MavrykNavigator, backend: MavrykBackend):
     """Check quit app"""
     if backend._firmware.is_nano:
         # Home
@@ -99,4 +99,4 @@ def test_quit(tezos_navigator: TezosNavigator, backend: TezosBackend):
         except requests.exceptions.ConnectionError:
             pass
     else:
-        tezos_navigator.home.quit()
+        mavryk_navigator.home.quit()

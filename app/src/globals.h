@@ -24,12 +24,12 @@
 #include <string.h>
 #include <bolos_target.h>
 
-#define TZ_SCREEN_WITDH_FULL_REGULAR_11PX       19
-#define TZ_SCREEN_WITDH_BETWEEN_ICONS_BOLD_11PX 16
+#define MV_SCREEN_WITDH_FULL_REGULAR_11PX       19
+#define MV_SCREEN_WITDH_BETWEEN_ICONS_BOLD_11PX 16
 #ifdef TARGET_NANOS
-#define TZ_SCREEN_LINES_11PX 2
+#define MV_SCREEN_LINES_11PX 2
 #else
-#define TZ_SCREEN_LINES_11PX 5
+#define MV_SCREEN_LINES_11PX 5
 #endif
 
 #include "sign.h"
@@ -87,11 +87,11 @@ typedef enum {
 typedef struct {
     // UI structs
     union {
-        tz_ui_stream_t stream;  /// stream UX and UI related information
+        mv_ui_stream_t stream;  /// stream UX and UI related information
 #ifdef HAVE_BAGL
-        tz_ui_settings_t settings;  /// settings UI buffers
+        mv_ui_settings_t settings;  /// settings UI buffers
 #endif
-        tz_ui_pubkey_t
+        mv_ui_pubkey_t
             pubkey;  /// UX and UI information related to public key
     } ui;
     bip32_path_with_curve_t path_with_curve;  /// Derivation path
@@ -108,7 +108,7 @@ typedef struct {
         cx_ecfp_public_key_t pubkey;
     } keys;
     /// Buffer to store incoming data.
-    char line_buf[TZ_UI_STREAM_CONTENTS_SIZE + 1];
+    char line_buf[MV_UI_STREAM_CONTENTS_SIZE + 1];
 
 #ifdef HAVE_NBGL
     blindsign_reason_t

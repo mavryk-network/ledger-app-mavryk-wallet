@@ -64,9 +64,9 @@ typedef struct {
  *
  * @param out: BIP32 path output.
  * @param in: buffer input
- * @return tz_exc return success/failure using error code
+ * @return mv_exc return success/failure using error code
  */
-tz_exc read_bip32_path(bip32_path_t *out, buffer_t *in);
+mv_exc read_bip32_path(bip32_path_t *out, buffer_t *in);
 
 /**
  * @brief Derive public key for given derivation type address.
@@ -74,9 +74,9 @@ tz_exc read_bip32_path(bip32_path_t *out, buffer_t *in);
  * @param public_key Public key derived is stored in this struct.
  * @param derivation_type Derivation type to be used
  * @param bip32_path path to derive public key from
- * @return tz_exc return success/failure using error code
+ * @return mv_exc return success/failure using error code
  */
-tz_exc derive_pk(cx_ecfp_public_key_t *public_key,
+mv_exc derive_pk(cx_ecfp_public_key_t *public_key,
                  derivation_type_t     derivation_type,
                  const bip32_path_t   *bip32_path);
 /**
@@ -85,9 +85,9 @@ tz_exc derive_pk(cx_ecfp_public_key_t *public_key,
  * @param hash The hash of public key, output is stored in this buffer.
  * @param derivation_type Derivation type to be used.
  * @param bip32_path Path to derive public key from.
- * @return tz_exc return Error code
+ * @return mv_exc return Error code
  */
-tz_exc derive_pkh(cx_ecfp_public_key_t *pubkey,
+mv_exc derive_pkh(cx_ecfp_public_key_t *pubkey,
                   derivation_type_t derivation_type, char *buffer,
                   size_t len);
 void   sign(derivation_type_t derivation_type, const bip32_path_t *path,

@@ -23,15 +23,15 @@ import pytest
 from ragger.navigator import NavInsID
 
 from utils.account import Account
-from utils.backend import StatusCode, TezosBackend
+from utils.backend import StatusCode, MavrykBackend
 from utils.message import Transaction
-from utils.navigator import TezosNavigator, TezosNavInsID
+from utils.navigator import MavrykNavigator, MavrykNavInsID
 
 
 @pytest.mark.parametrize("with_hash", [True, False])
 def test_sign(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         with_hash: bool
 ):
@@ -40,7 +40,7 @@ def test_sign(
     message = Transaction()
 
     with backend.sign(account, message, with_hash=with_hash) as result:
-        tezos_navigator.accept_sign()
+        mavryk_navigator.accept_sign()
 
     account.check_signature(
         message=message,
@@ -49,8 +49,8 @@ def test_sign(
     )
 
 def test_reject_operation(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
@@ -60,12 +60,12 @@ def test_reject_operation(
 
     with StatusCode.REJECT.expected():
         with backend.sign(account, message, with_hash=True):
-            tezos_navigator.reject_sign(snap_path=snapshot_dir)
+            mavryk_navigator.reject_sign(snap_path=snapshot_dir)
 
 @pytest.mark.use_on_device("touch")
 def test_reject_operation_at_start(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
@@ -75,10 +75,10 @@ def test_reject_operation_at_start(
 
     with StatusCode.REJECT.expected():
         with backend.sign(account, message):
-            tezos_navigator.navigate(
+            mavryk_navigator.navigate(
                 instructions=[
                     NavInsID.USE_CASE_REVIEW_REJECT,
-                    TezosNavInsID.REJECT_CHOICE_CONFIRM,
+                    MavrykNavInsID.REJECT_CHOICE_CONFIRM,
                     NavInsID.USE_CASE_STATUS_DISMISS,
                 ],
                 screen_change_before_first_instruction=True,
@@ -88,8 +88,8 @@ def test_reject_operation_at_start(
 
 @pytest.mark.use_on_device("touch")
 def test_reject_operation_at_fields(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
@@ -99,11 +99,11 @@ def test_reject_operation_at_fields(
 
     with StatusCode.REJECT.expected():
         with backend.sign(account, message):
-            tezos_navigator.navigate(
+            mavryk_navigator.navigate(
                 instructions=[
                     NavInsID.USE_CASE_REVIEW_TAP,
                     NavInsID.USE_CASE_REVIEW_REJECT,
-                    TezosNavInsID.REJECT_CHOICE_CONFIRM,
+                    MavrykNavInsID.REJECT_CHOICE_CONFIRM,
                     NavInsID.USE_CASE_STATUS_DISMISS,
                 ],
                 screen_change_before_first_instruction=True,
@@ -112,18 +112,18 @@ def test_reject_operation_at_fields(
             )
 
 def test_sign_with_small_packet(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account
 ):
     """Check signing using small packet instead of full size packets"""
 
-    tezos_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_expert_mode()
 
     message = Transaction()
 
     with backend.sign(account, message, apdu_size=10) as result:
-        tezos_navigator.accept_sign()
+        mavryk_navigator.accept_sign()
 
     account.check_signature(
         message=message,

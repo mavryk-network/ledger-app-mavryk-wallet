@@ -1,4 +1,4 @@
-/* Tezos Embedded C parser for Ledger - Micheline data parser
+/* Mavryk Embedded C parser for Ledger - Micheline data parser
 
    Copyright 2023 Nomadic Labs <contact@nomadic-labs.com>
 
@@ -23,12 +23,12 @@
  *
  * @param state: parser state
  */
-void tz_micheline_parser_init(tz_parser_state *state);
+void mv_micheline_parser_init(mv_parser_state *state);
 
 /**
  * @brief Apply one step to the micheline parser
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-tz_parser_result tz_micheline_parser_step(tz_parser_state *state);
+mv_parser_result mv_micheline_parser_step(mv_parser_state *state);

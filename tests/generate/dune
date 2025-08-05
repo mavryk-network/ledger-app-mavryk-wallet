@@ -1,5 +1,5 @@
 (executable
  (name generate)
  (libraries
-  tezos-protocol-018-Proxford.protocol
-  tezos-benchmarks-proto-018-Proxford))
+  mavryk-protocol-001-PtAtLas.protocol
+  mavryk-benchmarks-proto-001-PtAtLas))

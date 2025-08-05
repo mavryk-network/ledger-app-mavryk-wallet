@@ -3,7 +3,7 @@
 An APDU is sent by a client to the ledger hardware. This message tells
 the ledger some operation to run. Most APDU messages will be
 accompanied by an Accept / Reject prompt on the Ledger. Once the user
-hits “Accept” the Ledger will issue a response to the Tezos client.
+hits “Accept” the Ledger will issue a response to the Mavryk client.
 The basic format of the APDU request follows.
 
 | Field   | Length   | Description                                                            |
@@ -21,7 +21,7 @@ which instruction is being used.
 
 ## Example
 
-Here is an example of an APDU message from the ledger-app-tezos-wallet
+Here is an example of an APDU message from the ledger-app-mavryk-wallet
 tests:
 
 > 0x8003000011048000002c800006c18000000080000000
@@ -57,7 +57,7 @@ This parses as:
 | `EXC_UNEXPECTED_SIGN_STATE`     | 0x9002 | The state of the application at signature is unexpected. |
 | `EXC_UNKNOWN`                   | 0x90FF | Unknown exception.                                        |
 
-## APDU instructions in use by Tezos Ledger apps
+## APDU instructions in use by Mavryk Ledger apps
 
 | Instruction                     | Code | Prompt | Short description                                |
 |---------------------------------|------|--------|--------------------------------------------------|
@@ -200,7 +200,7 @@ No input data.
 ## Parsing
 
 The current version of the application is compatible with the protocol
-Nairobi.
+Atlas.
 
 There are 2 kind of data that can be parsed when blind signing is
 disable:
@@ -212,16 +212,16 @@ If the data is invalid or too large, the analysis may fail with an
 
 ### Michelson
 
-Currently, all valid Michelson can be parsed up to the Nairobi
+Currently, all valid Michelson can be parsed up to the Atlas
 protocol (See the
-[API](https://tezos.gitlab.io/nairobi/michelson.html)).
+[API](https://protocol.mavryk.org/atlas/michelson.html)).
 
 
 ### Operations
 
 There are currently fifteen operations supported in the Ledger, they
 need to be valid to be parsed (See the
-[API](https://tezos.gitlab.io/shell/p2p_api.html)):
+[API](https://protocol.mavryk.org/shell/p2p_api.html)):
 - The `Proposal` operation enables delegates to submit (also known as
   to “inject”) protocol amendment proposals, or to up-vote previously
   submitted proposals, during the Proposal period.
@@ -240,7 +240,7 @@ need to be valid to be parsed (See the
   responsibility of signing blocks and consensus-related operations to
   another account. Note that consensus keys cannot be BLS public keys.
 - The `Origination` operation is used to originate, that is to deploy,
-  smart contracts in the Tezos blockchain.
+  smart contracts in the Mavryk blockchain.
 - The `Set_deposits_limit` operation enables delegates to adjust the
   amount of stake a delegate has locked in bonds.
 - The `Increase_paid_storage` operation allows a sender to increase
@@ -248,9 +248,9 @@ need to be valid to be parsed (See the
 - The `Register_global_constant` operation for registering global
   constants.
 - The `Smart_rollup_originate` operation is used to originate, that
-  is, to deploy smart rollups in the Tezos blockchain.
+  is, to deploy smart rollups in the Mavryk blockchain.
 - The `Smart_rollup_add_messages` operation is used to add messages to
-  the inbox shared by all the smart rollups originated in the Tezos
+  the inbox shared by all the smart rollups originated in the Mavryk
   blockchain. These messages are interpreted by the smart rollups
   according to their specific semantics.
 - The `Smart_rollup_execute_outbox_message` operation is used to enact

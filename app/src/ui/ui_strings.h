@@ -1,4 +1,4 @@
-/** Tezos Ledger application - Dynamic UI to display a stream of pages
+/** Mavryk Ledger application - Dynamic UI to display a stream of pages
 
    Copyright 2023 TriliTech <contact@trili.tech>
 
@@ -50,7 +50,7 @@ typedef struct {
     char *internal_end;  /// Actual end of the buffer after which no data is
                          /// present. 0 <= internal_end < BUFF_LEN
     size_t count;        /// Number of strings stored in the buffer
-} tz_ui_strings_t;
+} mv_ui_strings_t;
 
 /**
  * @brief Resets ring buffer and set start and end to BUFF_START

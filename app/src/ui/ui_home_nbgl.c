@@ -4,7 +4,7 @@
 
    With code excerpts from:
     - Legacy Tezos app, Copyright 2019 Obsidian Systems
-    - Legacy Tezos app, Copyright 2023 Ledger
+    - Legacy Mavryk app, Copyright 2023 Ledger
     - Ledger Blue sample apps, Copyright 2016 Ledger
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@
 #include "globals.h"
 #include "nbgl_use_case.h"
 
-void tz_ui_home_redisplay(void);
+void mv_ui_home_redisplay(void);
 
 //  -----------------------------------------------------------
 //  --------------------- SETTINGS MENU -----------------------
@@ -37,7 +37,7 @@ void tz_ui_home_redisplay(void);
 
 static const char *const infoTypes[]    = {"Version", "Developer", "Contact"};
 static const char *const infoContents[] = {
-    APPVERSION, "Trilitech Kanvas Limited et al.", "ledger-tezos@trili.tech"};
+    APPVERSION, "Mavryk Dynamics LTD.", "info@mavryk.io"};
 
 enum {
     EXPERT_MODE_TOKEN = FIRST_USER_TOKEN,
@@ -81,13 +81,13 @@ static const nbgl_content_t contentsList[SETTINGS_CONTENTS_NB] = {
      .contentActionCallback           = controls_callback}
 };
 
-static const nbgl_genericContents_t tezos_settingContents
+static const nbgl_genericContents_t mavryk_settingContents
     = {.callbackCallNeeded = false,
        .contentsList       = contentsList,
        .nbContents         = SETTINGS_CONTENTS_NB};
 ;
 
-#define HOME_TEXT "This app enables signing transactions on the Tezos Network"
+#define HOME_TEXT "This app enables signing transactions on the Mavryk Network"
 void
 initSettings(void)
 {
@@ -108,14 +108,14 @@ initSettings(void)
 }
 
 void
-tz_ui_home_redisplay(void)
+mv_ui_home_redisplay(void)
 {
     FUNC_ENTER(("void"));
 
     initSettings();
 
-    nbgl_useCaseHomeAndSettings("Tezos Wallet", &C_tezos, HOME_TEXT,
-                                INIT_HOME_PAGE, &tezos_settingContents,
+    nbgl_useCaseHomeAndSettings("Mavryk Wallet", &C_mavryk, HOME_TEXT,
+                                INIT_HOME_PAGE, &mavryk_settingContents,
                                 &infoList, NULL, app_exit);
 
     FUNC_LEAVE();

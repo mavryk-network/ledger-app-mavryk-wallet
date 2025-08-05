@@ -82,12 +82,12 @@ typedef struct {
     sign_step_t step;  /// Current step of the sign operation.
     bool return_hash;  /// Whether to return the hash of the transaction.
     bool received_last_msg;  /// Whether the last message has been received.
-    uint8_t tag;             /// Type of tezos operation to sign.
+    uint8_t tag;             /// Type of mavryk operation to sign.
 
     union {
         /// @brief clear signing state info.
         struct {
-            tz_parser_state parser_state;
+            mv_parser_state parser_state;
             size_t          total_length;
             uint8_t         last_field_index;
 #ifdef HAVE_BAGL

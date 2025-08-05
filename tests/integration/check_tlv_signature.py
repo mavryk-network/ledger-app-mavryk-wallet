@@ -15,7 +15,7 @@
 
 import sys
 import base58
-from pytezos import pytezos
+from pymavryk import pymavryk
 
 def adjust_size(bytes, size):
     return bytes[-size:].rjust(size, b'\x00')
@@ -58,7 +58,7 @@ def check_signature(hex_tlv, pk, message):
     sig_prefix = bytes.fromhex("04822b") # sig(96)
     signature = base58.b58encode_check(sig_prefix + sig)
 
-    ctxt = pytezos.using(key=pk)
+    ctxt = pymavryk.using(key=pk)
     assert ctxt.key.verify(signature, message)
 
 def check_between(prefix, suffix, v):

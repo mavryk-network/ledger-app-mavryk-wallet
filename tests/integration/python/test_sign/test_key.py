@@ -19,9 +19,9 @@
 import pytest
 
 from utils.account import Account, SigType
-from utils.backend import TezosBackend
+from utils.backend import MavrykBackend
 from utils.message import MichelineExpr
-from utils.navigator import TezosNavigator
+from utils.navigator import MavrykNavigator
 
 
 @pytest.mark.parametrize(
@@ -42,8 +42,8 @@ from utils.navigator import TezosNavigator
     ids=lambda account: f"{account.sig_type}"
 )
 def test_sign_with_another_sig(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account
 ):
     """Check signing with ed25519"""
@@ -51,7 +51,7 @@ def test_sign_with_another_sig(
     message = MichelineExpr([{'int': 0}])
 
     with backend.sign(account, message, with_hash=True) as result:
-        tezos_navigator.accept_sign()
+        mavryk_navigator.accept_sign()
 
     account.check_signature(
         message=message,
@@ -67,12 +67,12 @@ def test_sign_with_another_sig(
     ids=["seed21"]
 )
 def test_sign_with_another_seed(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator
 ):
     """Check signing using another seed than [zebra*24]"""
 
-    tezos_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_expert_mode()
 
     account = Account("m/44'/1729'/0'/0'",
                       SigType.ED25519,
@@ -81,7 +81,7 @@ def test_sign_with_another_seed(
     message = MichelineExpr([{'int': 0}])
 
     with backend.sign(account, message, with_hash=True) as result:
-        tezos_navigator.accept_sign()
+        mavryk_navigator.accept_sign()
 
     account.check_signature(
         message=message,

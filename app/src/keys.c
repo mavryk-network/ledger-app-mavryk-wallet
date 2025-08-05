@@ -30,7 +30,7 @@
 #include "keys.h"
 #include "globals.h"
 
-static tz_exc public_key_hash(uint8_t *hash_out, size_t hash_out_size,
+static mv_exc public_key_hash(uint8_t *hash_out, size_t hash_out_size,
                               cx_ecfp_public_key_t       *compressed_out,
                               derivation_type_t           derivation_type,
                               const cx_ecfp_public_key_t *public_key);
@@ -49,26 +49,26 @@ derivation_type_to_cx_curve(derivation_type_t derivation_type)
     // clang-format on
 }
 
-tz_exc
+mv_exc
 read_bip32_path(bip32_path_t *out, buffer_t *in)
 {
-    TZ_PREAMBLE(("out=%p, in=%p", out, in));
+    MV_PREAMBLE(("out=%p, in=%p", out, in));
 
-    TZ_ASSERT(EXC_WRONG_LENGTH_FOR_INS,
+    MV_ASSERT(EXC_WRONG_LENGTH_FOR_INS,
               buffer_read_u8(in, &out->length)
                   && buffer_read_bip32_path(in, (uint32_t *)&out->components,
                                             out->length)
                   // Assert entire bip32_path consumed
                   && (sizeof(uint8_t) + sizeof(uint32_t) * out->length
                       == in->offset));
-    TZ_LIB_POSTAMBLE;
+    MV_LIB_POSTAMBLE;
 }
 
-tz_exc
+mv_exc
 derive_pk(cx_ecfp_public_key_t *public_key, derivation_type_t derivation_type,
           const bip32_path_t *bip32_path)
 {
-    TZ_PREAMBLE(("public_key=%p, derivation_type=%d, bip32_path=%p",
+    MV_PREAMBLE(("public_key=%p, derivation_type=%d, bip32_path=%p",
                  public_key, derivation_type, bip32_path));
 
     public_key->W_len = 65;
@@ -89,17 +89,17 @@ derive_pk(cx_ecfp_public_key_t *public_key, derivation_type_t derivation_type,
         public_key->W_len = 33;
     }
 
-    TZ_LIB_POSTAMBLE;
+    MV_LIB_POSTAMBLE;
 }
 
-tz_exc
+mv_exc
 derive_pkh(cx_ecfp_public_key_t *pubkey, derivation_type_t derivation_type,
            char *buffer, size_t len)
 {
     uint8_t hash[21];
-    TZ_PREAMBLE(("buffer=%p, len=%u", buffer, len));
-    TZ_ASSERT_NOTNULL(buffer);
-    TZ_LIB_CHECK(
+    MV_PREAMBLE(("buffer=%p, len=%u", buffer, len));
+    MV_ASSERT_NOTNULL(buffer);
+    MV_LIB_CHECK(
         public_key_hash(hash + 1, 20, NULL, derivation_type, pubkey));
     // clang-format off
     switch (derivation_type) {
@@ -107,34 +107,34 @@ derive_pkh(cx_ecfp_public_key_t *pubkey, derivation_type_t derivation_type,
     case DERIVATION_TYPE_SECP256R1: hash[0] = 2; break;
     case DERIVATION_TYPE_ED25519:
     case DERIVATION_TYPE_BIP32_ED25519: hash[0] = 0; break;
-    default: TZ_FAIL(EXC_WRONG_PARAM); break;
+    default: MV_FAIL(EXC_WRONG_PARAM); break;
     }
     // clang-format on
 
-    if (tz_format_pkh(hash, 21, buffer, len)) {
-        TZ_FAIL(EXC_UNKNOWN);
+    if (mv_format_pkh(hash, 21, buffer, len)) {
+        MV_FAIL(EXC_UNKNOWN);
     }
 
-    TZ_LIB_POSTAMBLE;
+    MV_LIB_POSTAMBLE;
 }
 
 #define HASH_SIZE 20
 
-static tz_exc
+static mv_exc
 public_key_hash(uint8_t *hash_out, size_t hash_out_size,
                 cx_ecfp_public_key_t       *compressed_out,
                 derivation_type_t           derivation_type,
                 const cx_ecfp_public_key_t *public_key)
 {
-    TZ_PREAMBLE(
+    MV_PREAMBLE(
         ("hash_out=%p, hash_out_size=%u, compressed_out=%p, "
          "derivation_type=%d, public_key=%p",
          hash_out, hash_out_size, compressed_out, derivation_type,
          public_key));
 
-    TZ_ASSERT_NOTNULL(hash_out);
-    TZ_ASSERT_NOTNULL(public_key);
-    TZ_ASSERT(EXC_WRONG_LENGTH, hash_out_size >= HASH_SIZE);
+    MV_ASSERT_NOTNULL(hash_out);
+    MV_ASSERT_NOTNULL(public_key);
+    MV_ASSERT(EXC_WRONG_LENGTH, hash_out_size >= HASH_SIZE);
 
     cx_ecfp_public_key_t compressed = {0};
     switch (derivation_type) {
@@ -150,7 +150,7 @@ public_key_hash(uint8_t *hash_out, size_t hash_out_size,
         compressed.W_len = 33;
         break;
     default:
-        TZ_FAIL(EXC_WRONG_PARAM);
+        MV_FAIL(EXC_WRONG_PARAM);
     }
 
     cx_blake2b_t hash_state;
@@ -161,7 +161,7 @@ public_key_hash(uint8_t *hash_out, size_t hash_out_size,
         memmove(compressed_out, &compressed, sizeof(*compressed_out));
     }
 
-    TZ_LIB_POSTAMBLE;
+    MV_LIB_POSTAMBLE;
 }
 
 /**
@@ -188,14 +188,14 @@ sign(derivation_type_t derivation_type, const bip32_path_t *path,
     unsigned   derivation_mode;
     uint32_t   info;
     cx_curve_t curve = derivation_type_to_cx_curve(derivation_type);
-    TZ_PREAMBLE(
+    MV_PREAMBLE(
         ("sig=%p, siglen=%u, derivation_type=%d, "
          "path=%p, hash=%p, hashlen=%u",
          sig, *siglen, derivation_type, path, hash, hashlen));
-    TZ_ASSERT_NOTNULL(path);
-    TZ_ASSERT_NOTNULL(hash);
-    TZ_ASSERT_NOTNULL(sig);
-    TZ_ASSERT_NOTNULL(siglen);
+    MV_ASSERT_NOTNULL(path);
+    MV_ASSERT_NOTNULL(hash);
+    MV_ASSERT_NOTNULL(sig);
+    MV_ASSERT_NOTNULL(siglen);
 
     switch (derivation_type) {
     case DERIVATION_TYPE_BIP32_ED25519:
@@ -218,8 +218,8 @@ sign(derivation_type_t derivation_type, const bip32_path_t *path,
         }
         break;
     default:
-        TZ_FAIL(EXC_WRONG_VALUES);
+        MV_FAIL(EXC_WRONG_VALUES);
         break;
     }
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }

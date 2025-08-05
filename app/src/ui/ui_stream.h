@@ -25,8 +25,8 @@
    reached).
 
    When a new page is needed, the display will call the `refill`
-   callback, which in turn can call `tz_ui_stream_push` to add a new
-   page. When the last page is reached, `tz_ui_stream_close` should be
+   callback, which in turn can call `mv_ui_stream_push` to add a new
+   page. When the last page is reached, `mv_ui_stream_close` should be
    called, and the two final special pages to `accept` and `reject`
    the operation are pushed. The user can trigger the `accept` and
    `reject` callbacks by pressing both buttons while there pages are
@@ -34,7 +34,7 @@
 
    It is also possible to use this display engine for non streamed
    data by pushing a precomputed series of pages with
-   `tz_ui_stream_push`, calling `tz_ui_stream_close`, and launching
+   `mv_ui_stream_push`, calling `mv_ui_stream_close`, and launching
    with a `refill` callback set to NULL. */
 
 #ifdef HAVE_NBGL
@@ -46,56 +46,56 @@
 #include "ui_strings.h"
 
 #ifdef TARGET_NANOS
-#define TZ_UI_STREAM_HISTORY_SCREENS \
+#define MV_UI_STREAM_HISTORY_SCREENS \
     5  /// Max number of screens in history for nanos
 #else
-#define TZ_UI_STREAM_HISTORY_SCREENS \
+#define MV_UI_STREAM_HISTORY_SCREENS \
     8   /// Max number of screens in history for nanos2/nanox.
 #endif  // TARGET_NANOS
 
-#define TZ_UI_STREAM_TITLE_WIDTH TZ_SCREEN_WITDH_BETWEEN_ICONS_BOLD_11PX
+#define MV_UI_STREAM_TITLE_WIDTH MV_SCREEN_WITDH_BETWEEN_ICONS_BOLD_11PX
 
 #ifdef HAVE_BAGL
-#define TZ_UI_STREAM_CONTENTS_WIDTH TZ_SCREEN_WITDH_FULL_REGULAR_11PX
-#define TZ_UI_STREAM_CONTENTS_LINES (TZ_SCREEN_LINES_11PX - 1)
+#define MV_UI_STREAM_CONTENTS_WIDTH MV_SCREEN_WITDH_FULL_REGULAR_11PX
+#define MV_UI_STREAM_CONTENTS_LINES (MV_SCREEN_LINES_11PX - 1)
 #elif HAVE_NBGL
-#define TZ_UI_STREAM_CONTENTS_WIDTH 20
-#define TZ_UI_STREAM_CONTENTS_LINES 1
+#define MV_UI_STREAM_CONTENTS_WIDTH 20
+#define MV_UI_STREAM_CONTENTS_LINES 1
 #endif
 
-#define TZ_UI_STREAM_CONTENTS_SIZE \
-    (TZ_UI_STREAM_CONTENTS_WIDTH * TZ_UI_STREAM_CONTENTS_LINES)
+#define MV_UI_STREAM_CONTENTS_SIZE \
+    (MV_UI_STREAM_CONTENTS_WIDTH * MV_UI_STREAM_CONTENTS_LINES)
 
 /**
  * @brief Following #define's specify different "cb_types" which are passed to
  * our callback and it can be used to determine which screen was displayed
  * when both buttons were pressed.
  *
- * If TZ_UI_STREAM_SCREEN_NOCB is specified, no callback will be called
+ * If MV_UI_STREAM_SCREEN_NOCB is specified, no callback will be called
  * when both buttons are pressed.
  *
- * If (cb_type | TZ_UI_STREAM_SCREEN_MAINMASK) > 0 then we will return
+ * If (cb_type | MV_UI_STREAM_SCREEN_MAINMASK) > 0 then we will return
  * to the main menu after the callback has been processed.  Developers
  * can use this in their own definitions.
  */
 
-typedef uint8_t tz_ui_cb_type_t;
-#define TZ_UI_STREAM_CB_NOCB 0x00u
+typedef uint8_t mv_ui_cb_type_t;
+#define MV_UI_STREAM_CB_NOCB 0x00u
 #ifdef HAVE_NBGL
-#define TZ_UI_STREAM_CB_SUMMARY 0x0Du
+#define MV_UI_STREAM_CB_SUMMARY 0x0Du
 #endif
-#define TZ_UI_STREAM_CB_BLINDSIGN          0x0Eu
-#define TZ_UI_STREAM_CB_VALIDATE           0x0Fu
-#define TZ_UI_STREAM_CB_REFILL             0xEFu
-#define TZ_UI_STREAM_CB_MAINMASK           0xF0u
-#define TZ_UI_STREAM_CB_EXPERT_MODE_FIELD  0xFAu
-#define TZ_UI_STREAM_CB_EXPERT_MODE_ENABLE 0xFBu
-#define TZ_UI_STREAM_CB_BLINDSIGN_REJECT   0xFCu
-#define TZ_UI_STREAM_CB_CANCEL             0xFDu
-#define TZ_UI_STREAM_CB_REJECT             0xFEu
-#define TZ_UI_STREAM_CB_ACCEPT             0xFFu
+#define MV_UI_STREAM_CB_BLINDSIGN          0x0Eu
+#define MV_UI_STREAM_CB_VALIDATE           0x0Fu
+#define MV_UI_STREAM_CB_REFILL             0xEFu
+#define MV_UI_STREAM_CB_MAINMASK           0xF0u
+#define MV_UI_STREAM_CB_EXPERT_MODE_FIELD  0xFAu
+#define MV_UI_STREAM_CB_EXPERT_MODE_ENABLE 0xFBu
+#define MV_UI_STREAM_CB_BLINDSIGN_REJECT   0xFCu
+#define MV_UI_STREAM_CB_CANCEL             0xFDu
+#define MV_UI_STREAM_CB_REJECT             0xFEu
+#define MV_UI_STREAM_CB_ACCEPT             0xFFu
 
-#define TZ_UI_LAYOUT_HOME_MASK 0x80u
+#define MV_UI_LAYOUT_HOME_MASK 0x80u
 
 /**
  * @brief Layout type enum
@@ -109,28 +109,28 @@ typedef uint8_t tz_ui_cb_type_t;
  *
  */
 typedef enum : uint8_t {
-    TZ_UI_LAYOUT_BN      = 0x01,
-    TZ_UI_LAYOUT_B       = 0x02,
-    TZ_UI_LAYOUT_N       = 0x03,
-    TZ_UI_LAYOUT_PB      = 0x04,
-    TZ_UI_LAYOUT_HOME_PB = (TZ_UI_LAYOUT_HOME_MASK | TZ_UI_LAYOUT_PB),
-    TZ_UI_LAYOUT_HOME_BN = (TZ_UI_LAYOUT_HOME_MASK | TZ_UI_LAYOUT_BN),
-    TZ_UI_LAYOUT_HOME_B  = (TZ_UI_LAYOUT_HOME_MASK | TZ_UI_LAYOUT_B),
-    TZ_UI_LAYOUT_HOME_N  = (TZ_UI_LAYOUT_HOME_MASK | TZ_UI_LAYOUT_N)
-} tz_ui_layout_type_t;
+    MV_UI_LAYOUT_BN      = 0x01,
+    MV_UI_LAYOUT_B       = 0x02,
+    MV_UI_LAYOUT_N       = 0x03,
+    MV_UI_LAYOUT_PB      = 0x04,
+    MV_UI_LAYOUT_HOME_PB = (MV_UI_LAYOUT_HOME_MASK | MV_UI_LAYOUT_PB),
+    MV_UI_LAYOUT_HOME_BN = (MV_UI_LAYOUT_HOME_MASK | MV_UI_LAYOUT_BN),
+    MV_UI_LAYOUT_HOME_B  = (MV_UI_LAYOUT_HOME_MASK | MV_UI_LAYOUT_B),
+    MV_UI_LAYOUT_HOME_N  = (MV_UI_LAYOUT_HOME_MASK | MV_UI_LAYOUT_N)
+} mv_ui_layout_type_t;
 
 /**
  * @brief The icons we used are generalised to allow for seamless Stax support
  */
-typedef uint8_t tz_ui_icon_t;
-#define TZ_UI_ICON_NONE      0x00
-#define TZ_UI_ICON_TICK      0x01
-#define TZ_UI_ICON_CROSS     0x02
-#define TZ_UI_ICON_DASHBOARD 0x03
-#define TZ_UI_ICON_SETTINGS  0x04
-#define TZ_UI_ICON_BACK      0x05
-#define TZ_UI_ICON_EYE       0x06
-#define TZ_UI_ICON_WARNING   0x07
+typedef uint8_t mv_ui_icon_t;
+#define MV_UI_ICON_NONE      0x00
+#define MV_UI_ICON_TICK      0x01
+#define MV_UI_ICON_CROSS     0x02
+#define MV_UI_ICON_DASHBOARD 0x03
+#define MV_UI_ICON_SETTINGS  0x04
+#define MV_UI_ICON_BACK      0x05
+#define MV_UI_ICON_EYE       0x06
+#define MV_UI_ICON_WARNING   0x07
 
 /**
  * @brief Represents a single screen's content and formatting for a ledger
@@ -138,16 +138,16 @@ typedef uint8_t tz_ui_icon_t;
  *
  */
 typedef struct {
-    tz_ui_cb_type_t
+    mv_ui_cb_type_t
         cb_type;  /// call back type for actions taken on this screen.
 #ifdef HAVE_BAGL
-    tz_ui_icon_t icon;  /// Icon to display on the screen.
-    tz_ui_layout_type_t
+    mv_ui_icon_t icon;  /// Icon to display on the screen.
+    mv_ui_layout_type_t
         layout_type;   /// Layout type for the screen. CAN BP, BNP, NP, PB or
                        /// HOME_X where X can be one of the BP, BNP, PB.
     uint8_t body_len;  /// number of non-empty lines in the body.
     char   *title;     /// Title to display on the screen.
-    char   *body[TZ_UI_STREAM_CONTENTS_LINES];  /// Body to display on the
+    char   *body[MV_UI_STREAM_CONTENTS_LINES];  /// Body to display on the
                                                 /// screen (Below title).
 #else
     nbgl_layoutTagValue_t
@@ -158,7 +158,7 @@ typedef struct {
                                                   /// screen in stax.
     uint8_t nb_pairs;  /// Number of pairs to be displayed on the stax screen.
 #endif
-} tz_ui_stream_screen_t;
+} mv_ui_stream_screen_t;
 
 /**
  * @brief Holds values for the current screen.
@@ -166,37 +166,37 @@ typedef struct {
 typedef struct {
 #ifdef HAVE_BAGL
     /// Holds the elements for the current screen
-    bagl_element_t bagls[4 + TZ_SCREEN_LINES_11PX];
+    bagl_element_t bagls[4 + MV_SCREEN_LINES_11PX];
 #else
     /// Holds list of title-value pairs for the current screen
     nbgl_layoutTagValueList_t list;
 #endif
-} tz_ui_stream_display_t;
+} mv_ui_stream_display_t;
 
 /**
  * @brief Holds data for current and all the history screens.
  *
  */
 typedef struct {
-    void (*cb)(tz_ui_cb_type_t cb_type);
-    tz_ui_stream_screen_t
-        screens[TZ_UI_STREAM_HISTORY_SCREENS];  // array containing info of
+    void (*cb)(mv_ui_cb_type_t cb_type);
+    mv_ui_stream_screen_t
+        screens[MV_UI_STREAM_HISTORY_SCREENS];  // array containing info of
                                                 // all screens.
-    tz_ui_strings_t strings;  // Ring buffer containing text data to be
+    mv_ui_strings_t strings;  // Ring buffer containing text data to be
                               // displayed on screen.
     int16_t current;          // index of current screen.
     int16_t total;            // total number of screens.
     int16_t last;             // index of last screen.
     bool    full;             // true if history is full.
     bool    pressed_right;    // true if right button was pressed.
-    tz_ui_stream_display_t current_screen;  // current screen's values.
+    mv_ui_stream_display_t current_screen;  // current screen's values.
 #ifdef HAVE_NBGL
     nbgl_callback_t
         stream_cb;  // callback to be called when new screen is needed.
 #endif              // HAVE_NBGL
-} tz_ui_stream_t;
+} mv_ui_stream_t;
 
-void tz_ui_stream_init(void (*cb)(tz_ui_cb_type_t cb_type));
+void mv_ui_stream_init(void (*cb)(mv_ui_cb_type_t cb_type));
 
 /**
  * @brief  Push title & content to a single screen
@@ -213,12 +213,12 @@ void tz_ui_stream_init(void (*cb)(tz_ui_cb_type_t cb_type));
  * is too large to fit on one screen, only part of it is written and rest is
  * displayed on next screen.)
  */
-size_t tz_ui_stream_push(tz_ui_cb_type_t cb_type, const char *title,
-                         const char *value, tz_ui_layout_type_t layout_type,
-                         tz_ui_icon_t icon);
+size_t mv_ui_stream_push(mv_ui_cb_type_t cb_type, const char *title,
+                         const char *value, mv_ui_layout_type_t layout_type,
+                         mv_ui_icon_t icon);
 
 /**
- * @brief  internal implementation of tz_ui_stream_push, implemented
+ * @brief  internal implementation of mv_ui_stream_push, implemented
  * differently for stax and nano* devices.
  *
  * @param cb_type callback type for the screen being pushed.
@@ -232,12 +232,12 @@ size_t tz_ui_stream_push(tz_ui_cb_type_t cb_type, const char *title,
  * is too large to fit on one screen, only part of it is written and rest is
  * displayed on next screen.)
  */
-size_t tz_ui_stream_pushl(tz_ui_cb_type_t cb_type, const char *title,
+size_t mv_ui_stream_pushl(mv_ui_cb_type_t cb_type, const char *title,
                           const char *value, ssize_t max,
-                          tz_ui_layout_type_t layout_type, tz_ui_icon_t icon);
+                          mv_ui_layout_type_t layout_type, mv_ui_icon_t icon);
 
 /**
- * @brief  Push title- value pair, internally calls tz_ui_stream_push multiple
+ * @brief  Push title- value pair, internally calls mv_ui_stream_push multiple
  * times so that entire value is pushed, even if it takes multiple screens.
  *
  * @param cb_type callback type
@@ -247,48 +247,48 @@ size_t tz_ui_stream_pushl(tz_ui_cb_type_t cb_type, const char *title,
  * @param icon Icon to be displayed on the screen
  * @return size_t returns total number of characters written on the screen.
  */
-size_t tz_ui_stream_push_all(tz_ui_cb_type_t cb_type, const char *title,
+size_t mv_ui_stream_push_all(mv_ui_cb_type_t cb_type, const char *title,
                              const char         *value,
-                             tz_ui_layout_type_t layout_type,
-                             tz_ui_icon_t        icon);
+                             mv_ui_layout_type_t layout_type,
+                             mv_ui_icon_t        icon);
 
 /**
  * @brief Indicates the stream is closed. Can not close it again.
  *
  */
-void tz_ui_stream_close(void);
+void mv_ui_stream_close(void);
 
 /**
  * @brief Redisplay the screen, called when additional data is pushed to the
  * screen or when user presses buttons.
  *
  */
-void tz_ui_stream(void);
+void mv_ui_stream(void);
 
 /**
  * @brief Start display of contents stored in ring buffer.
  *
  */
-void tz_ui_stream_start(void);
+void mv_ui_stream_start(void);
 
 /**
  * @brief Get the callback type for current screen.
  *
- * @return tz_ui_cb_type_t
+ * @return mv_ui_cb_type_t
  */
-tz_ui_cb_type_t tz_ui_stream_get_cb_type(void);
+mv_ui_cb_type_t mv_ui_stream_get_cb_type(void);
 
 #ifdef HAVE_NBGL
 /**
  * @brief Send Reject code.
  *
  */
-void tz_reject(void);
+void mv_reject(void);
 /**
  * @brief Reject confirmation screen.
  *
  */
-void tz_reject_ui(void);
+void mv_reject_ui(void);
 
 /**
  * @brief Display a warning error screen that leads to blindsigning.

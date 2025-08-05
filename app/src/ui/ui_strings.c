@@ -39,7 +39,7 @@ void   ui_strings_can_fit(size_t len, bool *can_fit);
 bool   ui_strings_is_empty(void);
 size_t ui_strings_append_last(const char *str, size_t max, char **out);
 
-#ifdef TEZOS_DEBUG
+#ifdef MAVRYK_DEBUG
 void ui_strings_print(void);
 #define PRINT_STRINGS ui_strings_print()
 #else
@@ -50,7 +50,7 @@ void ui_strings_print(void);
 void
 ui_strings_init(void)
 {
-    tz_ui_strings_t *s = UI_STRINGS;
+    mv_ui_strings_t *s = UI_STRINGS;
 
     memset(s->buffer, '\0', BUFF_LEN);
     s->start        = BUFF_START;
@@ -68,23 +68,23 @@ ui_strings_init(void)
 size_t
 ui_strings_fit_up_to(size_t len, char **write_start)
 {
-    tz_ui_strings_t *s       = UI_STRINGS;
+    mv_ui_strings_t *s       = UI_STRINGS;
     size_t           out_len = 0;
-    TZ_PREAMBLE(
+    MV_PREAMBLE(
         ("len=%d, start=%p, end=%p", len, s->start, s->end, s->internal_end));
 
     /* Preconditions */
-    TZ_ASSERT(EXC_MEMORY_ERROR, (*write_start == NULL));
+    MV_ASSERT(EXC_MEMORY_ERROR, (*write_start == NULL));
     /* Internal checks */
-    TZ_ASSERT(EXC_MEMORY_ERROR, (s->end <= s->internal_end));
+    MV_ASSERT(EXC_MEMORY_ERROR, (s->end <= s->internal_end));
 
     if (ui_strings_is_empty()) {
-        TZ_ASSERT(EXC_MEMORY_ERROR, (len < BUFF_LEN));
+        MV_ASSERT(EXC_MEMORY_ERROR, (len < BUFF_LEN));
 
         *write_start = s->start;
         out_len      = len + 1;
 
-        TZ_SUCCEED();
+        MV_SUCCEED();
     }
 
     /* Buffer not empty */
@@ -105,7 +105,7 @@ ui_strings_fit_up_to(size_t len, char **write_start)
         }
     }
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
     PRINTF("[DEBUG] ws=%p out_len=%d\n", *write_start, out_len);
     return out_len;
 }
@@ -116,38 +116,38 @@ ui_strings_can_fit(size_t len, bool *can_fit)
     char  *ws = NULL;
     size_t out_len;
 
-    TZ_PREAMBLE(("len=%d", len));
+    MV_PREAMBLE(("len=%d", len));
 
-    TZ_CHECK(out_len = ui_strings_fit_up_to(len, &ws));
+    MV_CHECK(out_len = ui_strings_fit_up_to(len, &ws));
 
     *can_fit = (out_len == len + 1);
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 
 void
 ui_strings_push(const char *in, size_t len, char **out)
 {
-    tz_ui_strings_t *s = UI_STRINGS;
-    TZ_PREAMBLE(("'%s' | in=%p, len=%d, start=%p, end=%p, internal_end=%p",
+    mv_ui_strings_t *s = UI_STRINGS;
+    MV_PREAMBLE(("'%s' | in=%p, len=%d, start=%p, end=%p, internal_end=%p",
                  in, in, len, s->start, s->end, s->internal_end));
     PRINT_STRINGS;
 
     /* Preconditions */
     PRINTF("[DEBUG] in = %p, out = %p\n", in, *out);
-    TZ_ASSERT(EXC_MEMORY_ERROR, (*out == NULL));
-    TZ_ASSERT_NOTNULL(in);
+    MV_ASSERT(EXC_MEMORY_ERROR, (*out == NULL));
+    MV_ASSERT_NOTNULL(in);
     /* Internal checks */
-    TZ_ASSERT(EXC_MEMORY_ERROR, (s->end <= s->internal_end));
+    MV_ASSERT(EXC_MEMORY_ERROR, (s->end <= s->internal_end));
 
     char  *ws = NULL;
     size_t out_len;
-    TZ_CHECK(out_len = ui_strings_fit_up_to(len, &ws));
+    MV_CHECK(out_len = ui_strings_fit_up_to(len, &ws));
     PRINTF("[DEBUG] Found space from %p to %p (for %d chars)\n", ws,
            ws + out_len - 1, out_len - 1);
 
-    TZ_ASSERT(EXC_MEMORY_ERROR, (out_len - 1 == len));
-    TZ_ASSERT(EXC_MEMORY_ERROR, ws != NULL);
+    MV_ASSERT(EXC_MEMORY_ERROR, (out_len - 1 == len));
+    MV_ASSERT(EXC_MEMORY_ERROR, ws != NULL);
 
     strlcpy(ws, in, len + 1);
     s->count++;
@@ -161,28 +161,28 @@ ui_strings_push(const char *in, size_t len, char **out)
     *out = ws;
     PRINTF("[DEBUG] Pushed '%s' to %p\n", *out, *out);
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
     PRINT_STRINGS;
 }
 
 void
 ui_strings_drop(char **in)
 {
-    tz_ui_strings_t *s = UI_STRINGS;
-    TZ_PREAMBLE(("in=%p, start=%p, end=%p", *in, s->start, s->end));
+    mv_ui_strings_t *s = UI_STRINGS;
+    MV_PREAMBLE(("in=%p, start=%p, end=%p", *in, s->start, s->end));
     PRINT_STRINGS;
 
     /* argument checks */
-    TZ_ASSERT(EXC_MEMORY_ERROR, (*in == s->start));
-    TZ_ASSERT(EXC_MEMORY_ERROR, (!ui_strings_is_empty()));
+    MV_ASSERT(EXC_MEMORY_ERROR, (*in == s->start));
+    MV_ASSERT(EXC_MEMORY_ERROR, (!ui_strings_is_empty()));
     /* Internal checks */
-    TZ_ASSERT(EXC_MEMORY_ERROR, (s->start < s->internal_end));
-    TZ_ASSERT(EXC_MEMORY_ERROR, (s->end <= s->internal_end));
+    MV_ASSERT(EXC_MEMORY_ERROR, (s->start < s->internal_end));
+    MV_ASSERT(EXC_MEMORY_ERROR, (s->end <= s->internal_end));
 
     size_t len = strlen(*in);
 
     char *new = *in + len + 1;
-    TZ_ASSERT(EXC_MEMORY_ERROR, (new <= s->internal_end));
+    MV_ASSERT(EXC_MEMORY_ERROR, (new <= s->internal_end));
 
     PRINTF("[DEBUG] zeroing %p (%d) (%s)\n", s->start, len, s->start);
     memset(s->start, '\0', len);
@@ -191,7 +191,7 @@ ui_strings_drop(char **in)
 
     if (new < s->internal_end) {
         s->start = new;
-        TZ_SUCCEED();
+        MV_SUCCEED();
     }
 
     /* This was the last string in the region */
@@ -201,31 +201,31 @@ ui_strings_drop(char **in)
     if (s->end == s->internal_end) {
         /* This was the last string in the ring buffer */
         s->end = BUFF_START;
-        TZ_ASSERT(EXC_MEMORY_ERROR, (ui_strings_is_empty()));
+        MV_ASSERT(EXC_MEMORY_ERROR, (ui_strings_is_empty()));
     }
 
     s->internal_end = s->end;
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
     PRINT_STRINGS;
 }
 
 void
 ui_strings_drop_last(char **in)
 {
-    tz_ui_strings_t *s = UI_STRINGS;
-    TZ_PREAMBLE(("in=%p, start=%p, end=%p", *in, s->start, s->end));
+    mv_ui_strings_t *s = UI_STRINGS;
+    MV_PREAMBLE(("in=%p, start=%p, end=%p", *in, s->start, s->end));
     PRINT_STRINGS;
 
     /* argument checks */
-    TZ_ASSERT_NOTNULL(*in);
+    MV_ASSERT_NOTNULL(*in);
 
     size_t len = strlen(*in);
-    TZ_ASSERT(EXC_MEMORY_ERROR, (!ui_strings_is_empty()));
-    TZ_ASSERT(EXC_MEMORY_ERROR, ((*in + len) == (s->end - 1)));
+    MV_ASSERT(EXC_MEMORY_ERROR, (!ui_strings_is_empty()));
+    MV_ASSERT(EXC_MEMORY_ERROR, ((*in + len) == (s->end - 1)));
     /* Internal checks */
-    TZ_ASSERT(EXC_MEMORY_ERROR, (s->start < s->internal_end));
-    TZ_ASSERT(EXC_MEMORY_ERROR, (s->end <= s->internal_end));
+    MV_ASSERT(EXC_MEMORY_ERROR, (s->start < s->internal_end));
+    MV_ASSERT(EXC_MEMORY_ERROR, (s->end <= s->internal_end));
 
     PRINTF("[DEBUG] zeroing %p (%d) (%s)\n", *in, len, *in);
     memset(*in, '\0', len);
@@ -246,7 +246,7 @@ ui_strings_drop_last(char **in)
     }
 
     PRINTF("[DEBUG] s=%p e=%p ie=%p", s->start, s->end, s->internal_end);
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
     PRINT_STRINGS;
 }
 
@@ -254,22 +254,22 @@ size_t
 ui_strings_append_last(const char *str, size_t max, char **out)
 {
     size_t           appended = 0;
-    tz_ui_strings_t *s        = UI_STRINGS;
+    mv_ui_strings_t *s        = UI_STRINGS;
 
-    TZ_PREAMBLE(("str=%s, out=%p", str, out));
+    MV_PREAMBLE(("str=%s, out=%p", str, out));
     PRINT_STRINGS;
 
     /* argument checks */
-    TZ_ASSERT_NOTNULL(str);
-    TZ_ASSERT(EXC_MEMORY_ERROR, (*out == NULL));
-    TZ_ASSERT(EXC_MEMORY_ERROR, (!ui_strings_is_empty()));
+    MV_ASSERT_NOTNULL(str);
+    MV_ASSERT(EXC_MEMORY_ERROR, (*out == NULL));
+    MV_ASSERT(EXC_MEMORY_ERROR, (!ui_strings_is_empty()));
     /* Internal checks */
-    TZ_ASSERT(EXC_MEMORY_ERROR, (s->start < s->internal_end));
-    TZ_ASSERT(EXC_MEMORY_ERROR, (s->end <= s->internal_end));
+    MV_ASSERT(EXC_MEMORY_ERROR, (s->start < s->internal_end));
+    MV_ASSERT(EXC_MEMORY_ERROR, (s->end <= s->internal_end));
 
     if (s->start == s->end) {
         // Cannot append any chars
-        TZ_SUCCEED();
+        MV_SUCCEED();
     }
 
     if (s->start < s->end) {
@@ -293,22 +293,22 @@ ui_strings_append_last(const char *str, size_t max, char **out)
            *out, *out + appended);
 
     PRINT_STRINGS;
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
     return appended;
 }
 
 bool
 ui_strings_is_empty(void)
 {
-    tz_ui_strings_t *s = UI_STRINGS;
+    mv_ui_strings_t *s = UI_STRINGS;
     return (s->start == s->end) && (s->count == 0); /* check COUNT is zero! */
 }
 
-#ifdef TEZOS_DEBUG
+#ifdef MAVRYK_DEBUG
 void
 ui_strings_next(char **p)
 {
-    tz_ui_strings_t *s = UI_STRINGS;
+    mv_ui_strings_t *s = UI_STRINGS;
 
     if (*p >= s->start) {
         size_t len  = strlen(*p);
@@ -338,7 +338,7 @@ ui_strings_next(char **p)
 void
 ui_strings_print(void)
 {
-    tz_ui_strings_t *s = UI_STRINGS;
+    mv_ui_strings_t *s = UI_STRINGS;
 
     if (ui_strings_is_empty()) {
         PRINTF("[DEBUG] START\t\t%p\n[DEBUG] END\t\t%p\n", BUFF_START,

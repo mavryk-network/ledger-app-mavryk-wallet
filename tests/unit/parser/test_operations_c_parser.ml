@@ -12,14 +12,14 @@
    See the License for the specific language governing permissions and
    limitations under the License. *)
 
-open Tezos_protocol_018_Proxford
+open Mavryk_protocol_001_PtAtLas
 open Test_c_parser_utils
 
 let pp_opt_field pp ppf = function
   | None -> Format.fprintf ppf "Field unset"
   | Some v -> Format.fprintf ppf "%a" pp v
 
-let pp_tz ppf tz = Format.fprintf ppf "%a XTZ" Protocol.Alpha_context.Tez.pp tz
+let pp_mv ppf mv = Format.fprintf ppf "%a MVRK" Protocol.Alpha_context.Tez.pp mv
 
 let pp_lazy_expr ppf lazy_expr =
   let expr = Result.get_ok @@ Protocol.Script_repr.force_decode lazy_expr in
@@ -38,7 +38,7 @@ let pp_serialized_proof ppf proof =
   pp_string_binary ppf proof
 
 let to_string
-    ( (_shell : Tezos_base.Operation.shell_header),
+    ( (_shell : Mavryk_base.Operation.shell_header),
       (Contents_list contents : Protocol.Alpha_context.packed_contents_list) ) =
   let open Protocol.Alpha_context in
   let manager_to_string (type t)
@@ -48,8 +48,8 @@ let to_string
       let manager_fields =
         [
           kind;
-          Format.asprintf "%a" Tezos_crypto.Signature.Public_key_hash.pp source;
-          Format.asprintf "%a" pp_tz fee;
+          Format.asprintf "%a" Mavryk_crypto.Signature.Public_key_hash.pp source;
+          Format.asprintf "%a" pp_mv fee;
           Z.to_string storage_limit;
         ]
       in
@@ -60,7 +60,7 @@ let to_string
         aux ~kind:"Delegation"
           [
             Format.asprintf "%a"
-              (pp_opt_field Tezos_crypto.Signature.Public_key_hash.pp)
+              (pp_opt_field Mavryk_crypto.Signature.Public_key_hash.pp)
               public_key_hash_opt;
           ]
     | Increase_paid_storage { amount_in_bytes; destination } ->
@@ -72,9 +72,9 @@ let to_string
     | Origination { delegate; script = { code; storage }; credit } ->
         aux ~kind:"Origination"
           [
-            Format.asprintf "%a" pp_tz credit;
+            Format.asprintf "%a" pp_mv credit;
             Format.asprintf "%a"
-              (pp_opt_field Tezos_crypto.Signature.Public_key_hash.pp)
+              (pp_opt_field Mavryk_crypto.Signature.Public_key_hash.pp)
               delegate;
             Format.asprintf "%a" pp_lazy_expr code;
             Format.asprintf "%a" pp_lazy_expr storage;
@@ -85,11 +85,11 @@ let to_string
     | Reveal public_key ->
         aux ~kind:"Reveal"
           [
-            Format.asprintf "%a" Tezos_crypto.Signature.Public_key.pp public_key;
+            Format.asprintf "%a" Mavryk_crypto.Signature.Public_key.pp public_key;
           ]
     | Set_deposits_limit tez_opt ->
         aux ~kind:"Set deposit limit"
-          [ Format.asprintf "%a" (pp_opt_field pp_tz) tez_opt ]
+          [ Format.asprintf "%a" (pp_opt_field pp_mv) tez_opt ]
     | Transaction { amount; entrypoint; destination; parameters } ->
         let parameters =
           if
@@ -104,7 +104,7 @@ let to_string
         in
         aux ~kind:"Transaction"
           ([
-             Format.asprintf "%a" pp_tz amount;
+             Format.asprintf "%a" pp_mv amount;
              Format.asprintf "%a" Contract.pp destination;
            ]
           @ parameters)
@@ -123,7 +123,7 @@ let to_string
     | Update_consensus_key public_key ->
         aux ~kind:"Set consensus key"
           [
-            Format.asprintf "%a" Tezos_crypto.Signature.Public_key.pp public_key;
+            Format.asprintf "%a" Mavryk_crypto.Signature.Public_key.pp public_key;
           ]
     | Sc_rollup_add_messages { messages } ->
         let message_to_string message =
@@ -145,7 +145,7 @@ let to_string
           | None -> []
           | Some whitelist ->
               List.map
-                (Format.asprintf "%a" Tezos_crypto.Signature.Public_key_hash.pp)
+                (Format.asprintf "%a" Mavryk_crypto.Signature.Public_key_hash.pp)
                 whitelist
         in
         aux ~kind:"SR: originate"
@@ -168,20 +168,20 @@ let to_string
     | Proposals { source; period; proposals } ->
         aux ~kind:"Proposals"
           ([
-             Format.asprintf "%a" Tezos_crypto.Signature.Public_key_hash.pp
+             Format.asprintf "%a" Mavryk_crypto.Signature.Public_key_hash.pp
                source;
              Format.asprintf "%ld" period;
            ]
           @ List.map
-              (Format.asprintf "%a" Tezos_crypto.Hashed.Protocol_hash.pp)
+              (Format.asprintf "%a" Mavryk_crypto.Hashed.Protocol_hash.pp)
               proposals)
     | Ballot { source; period; proposal; ballot } ->
         aux ~kind:"Ballot"
           [
-            Format.asprintf "%a" Tezos_crypto.Signature.Public_key_hash.pp
+            Format.asprintf "%a" Mavryk_crypto.Signature.Public_key_hash.pp
               source;
             Format.asprintf "%ld" period;
-            Format.asprintf "%a" Tezos_crypto.Hashed.Protocol_hash.pp proposal;
+            Format.asprintf "%a" Mavryk_crypto.Hashed.Protocol_hash.pp proposal;
             Format.asprintf "%a" Vote.pp_ballot ballot;
           ]
     | Manager_operation _ | _ -> assert false

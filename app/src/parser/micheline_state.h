@@ -1,4 +1,4 @@
-/* Tezos Embedded C parser for Ledger - Parser state for Micheline data
+/* Mavryk Embedded C parser for Ledger - Parser state for Micheline data
 
    Copyright 2023 Nomadic Labs <contact@nomadic-labs.com>
 
@@ -18,55 +18,55 @@
 
 #include "num_state.h"
 
-#define TZ_MICHELINE_STACK_DEPTH 45  /// Maximum micheline depth handled
+#define MV_MICHELINE_STACK_DEPTH 45  /// Maximum micheline depth handled
 
 /**
  * @brief Enumeration of all micheline tags
  */
 typedef enum {
-    TZ_MICHELINE_TAG_INT,
-    TZ_MICHELINE_TAG_STRING,
-    TZ_MICHELINE_TAG_SEQ,
-    TZ_MICHELINE_TAG_PRIM_0_NOANNOTS,
-    TZ_MICHELINE_TAG_PRIM_0_ANNOTS,
-    TZ_MICHELINE_TAG_PRIM_1_NOANNOTS,
-    TZ_MICHELINE_TAG_PRIM_1_ANNOTS,
-    TZ_MICHELINE_TAG_PRIM_2_NOANNOTS,
-    TZ_MICHELINE_TAG_PRIM_2_ANNOTS,
-    TZ_MICHELINE_TAG_PRIM_N,
-    TZ_MICHELINE_TAG_BYTES
-} tz_micheline_tag;
+    MV_MICHELINE_TAG_INT,
+    MV_MICHELINE_TAG_STRING,
+    MV_MICHELINE_TAG_SEQ,
+    MV_MICHELINE_TAG_PRIM_0_NOANNOTS,
+    MV_MICHELINE_TAG_PRIM_0_ANNOTS,
+    MV_MICHELINE_TAG_PRIM_1_NOANNOTS,
+    MV_MICHELINE_TAG_PRIM_1_ANNOTS,
+    MV_MICHELINE_TAG_PRIM_2_NOANNOTS,
+    MV_MICHELINE_TAG_PRIM_2_ANNOTS,
+    MV_MICHELINE_TAG_PRIM_N,
+    MV_MICHELINE_TAG_BYTES
+} mv_micheline_tag;
 
 /**
  * @brief Enumeration of all micheline parser step
  */
 typedef enum {
-    TZ_MICHELINE_STEP_TAG,
-    TZ_MICHELINE_STEP_PRIM_OP,
-    TZ_MICHELINE_STEP_PRIM_NAME,
-    TZ_MICHELINE_STEP_PRIM,
-    TZ_MICHELINE_STEP_SIZE,
-    TZ_MICHELINE_STEP_SEQ,
-    TZ_MICHELINE_STEP_BYTES,
-    TZ_MICHELINE_STEP_STRING,
-    TZ_MICHELINE_STEP_ANNOT,
-    TZ_MICHELINE_STEP_INT,
-    TZ_MICHELINE_STEP_PRINT_INT,
-    TZ_MICHELINE_STEP_PRINT_CAPTURE
-} tz_micheline_parser_step_kind;
+    MV_MICHELINE_STEP_TAG,
+    MV_MICHELINE_STEP_PRIM_OP,
+    MV_MICHELINE_STEP_PRIM_NAME,
+    MV_MICHELINE_STEP_PRIM,
+    MV_MICHELINE_STEP_SIZE,
+    MV_MICHELINE_STEP_SEQ,
+    MV_MICHELINE_STEP_BYTES,
+    MV_MICHELINE_STEP_STRING,
+    MV_MICHELINE_STEP_ANNOT,
+    MV_MICHELINE_STEP_INT,
+    MV_MICHELINE_STEP_PRINT_INT,
+    MV_MICHELINE_STEP_PRINT_CAPTURE
+} mv_micheline_parser_step_kind;
 
 /**
  * @brief
  */
 typedef enum {
-    TZ_CAP_STREAM_ANY    = 0,
-    TZ_CAP_STREAM_BYTES  = 1,
-    TZ_CAP_STREAM_INT    = 2,
-    TZ_CAP_STREAM_STRING = 3,
-    TZ_CAP_ADDRESS       = 4,
-    TZ_CAP_LIST          = 62,
-    TZ_CAP_OR            = 63
-} tz_micheline_capture_kind;
+    MV_CAP_STREAM_ANY    = 0,
+    MV_CAP_STREAM_BYTES  = 1,
+    MV_CAP_STREAM_INT    = 2,
+    MV_CAP_STREAM_STRING = 3,
+    MV_CAP_ADDRESS       = 4,
+    MV_CAP_LIST          = 62,
+    MV_CAP_OR            = 63
+} mv_micheline_capture_kind;
 
 /**
  * @brief This struct represents the frame of the parser of micheline
@@ -75,29 +75,29 @@ typedef enum {
  *        corresponding context
  */
 typedef struct {
-    tz_micheline_parser_step_kind step : 4;  /// step
+    mv_micheline_parser_step_kind step : 4;  /// step
     uint16_t                      stop;      /// stop offset
     union {
         struct {
             uint16_t size;  /// size read
-        } step_size;        /// TZ_MICHELINE_STEP_SIZE
+        } step_size;        /// MV_MICHELINE_STEP_SIZE
         struct {
             uint8_t first : 1;  /// if read first byte
-        } step_seq;             /// TZ_MICHELINE_STEP_SEQ
+        } step_seq;             /// MV_MICHELINE_STEP_SEQ
         struct {
             uint8_t first : 1;         /// if read first byte
             uint8_t has_rem_half : 1;  /// if half the byte remains to print
             uint8_t rem_half;          /// remaining half of the byte
-        } step_bytes;                  /// TZ_MICHELINE_STEP_BYTES
+        } step_bytes;                  /// MV_MICHELINE_STEP_BYTES
         struct {
             uint8_t first : 1;  /// if read first byte
-        } step_string;          /// TZ_MICHELINE_STEP_STRING
+        } step_string;          /// MV_MICHELINE_STEP_STRING
         struct {
             uint8_t first : 1;        /// if read first byte
-        } step_annot;                 /// TZ_MICHELINE_STEP_ANNOT
-        tz_num_parser_regs step_int;  /// number parser register
-                                      /// TZ_MICHELINE_STEP_INT,
-                                      /// TZ_MICHELINE_STEP_PRINT_INT
+        } step_annot;                 /// MV_MICHELINE_STEP_ANNOT
+        mv_num_parser_regs step_int;  /// number parser register
+                                      /// MV_MICHELINE_STEP_INT,
+                                      /// MV_MICHELINE_STEP_PRINT_INT
         struct {
             uint8_t op;         /// prim op
             uint8_t ofs;        /// offset
@@ -106,15 +106,15 @@ typedef struct {
             uint8_t spc : 1;    /// if has space
             uint8_t annot : 1;  /// if need to read an annotation
             uint8_t first : 1;  /// if read first byte
-        } step_prim;            /// TZ_MICHELINE_STEP_PRIM_OP,
-                                /// TZ_MICHELINE_STEP_PRIM_NAME,
-                                /// TZ_MICHELINE_STEP_PRIM
+        } step_prim;            /// MV_MICHELINE_STEP_PRIM_OP,
+                                /// MV_MICHELINE_STEP_PRIM_NAME,
+                                /// MV_MICHELINE_STEP_PRIM
         struct {
             int ofs;     /// offset of the capture buffer
-        } step_capture;  /// TZ_MICHELINE_STEP_CAPTURE_BYTES,
-                         /// TZ_MICHELINE_STEP_PRINT_CAPTURE
+        } step_capture;  /// MV_MICHELINE_STEP_CAPTURE_BYTES,
+                         /// MV_MICHELINE_STEP_PRINT_CAPTURE
     };
-} tz_micheline_parser_frame;
+} mv_micheline_parser_frame;
 
 /**
  * @brief This struct represents the parser of micheline
@@ -125,9 +125,9 @@ typedef struct {
  *        value read.
  */
 typedef struct {
-    tz_micheline_parser_frame
-        stack[TZ_MICHELINE_STACK_DEPTH];  /// stack of frames
-    tz_micheline_parser_frame *frame;     /// current frame
+    mv_micheline_parser_frame
+        stack[MV_MICHELINE_STACK_DEPTH];  /// stack of frames
+    mv_micheline_parser_frame *frame;     /// current frame
                                           /// init == stack, NULL when done
     bool is_unit;  /// indicates whether the micheline read is a unit
-} tz_micheline_state;
+} mv_micheline_state;

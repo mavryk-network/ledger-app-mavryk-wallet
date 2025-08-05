@@ -18,19 +18,19 @@ set -x
 set -e
 
 usage() {
-    echo "Usage: ./scripts/test_swap.sh {build_app_tezos|build_app_ethereum|build_app_exchange|run_tests|run_tests_all|update} {nanos|nanosp|nanox|stax|flex}"
+    echo "Usage: ./scripts/test_swap.sh {build_app_mavryk|build_app_ethereum|build_app_exchange|run_tests|run_tests_all|update} {nanos|nanosp|nanox|stax|flex}"
 }
 
-_assert_tezos_repo() {
+_assert_mavryk_repo() {
     set +x
-    message="APP_TEZOS_REPO must refer to a clone of the https://github.com/trilitech/ledger-app-tezos-wallet repository"
-    if [ ! -v APP_TEZOS_REPO ]; then
-        echo "The variable \$APP_TEZOS_REPO is missing"
+    message="APP_MAVRYK_REPO must refer to a clone of the https://github.com/mavryk-network/ledger-app-mavryk-wallet repository"
+    if [ ! -v APP_MAVRYK_REPO ]; then
+        echo "The variable \$APP_MAVRYK_REPO is missing"
         echo $message
         usage
         exit 1
     fi
-    if [ ! -d "$APP_TEZOS_REPO" ]; then
+    if [ ! -d "$APP_MAVRYK_REPO" ]; then
         echo $message
         usage
         exit 1
@@ -135,10 +135,10 @@ build_app_ethereum() {
     _build_side_app $1 "ethereum" $APP_ETH_REPO
 }
 
-build_app_tezos() {
-    _assert_tezos_repo
+build_app_mavryk() {
+    _assert_mavryk_repo
 
-    _build_side_app $1 "tezos" $APP_TEZOS_REPO/app
+    _build_side_app $1 "mavryk" $APP_MAVRYK_REPO/app
 }
 
 run_tests() {
@@ -149,7 +149,7 @@ run_tests() {
 
         docker run --privileged  --entrypoint /bin/bash                 \
                --rm -v "$(realpath .):/app"                             \
-               ledger-app-tezos-integration-tests -c                    \
+               ledger-app-mavryk-integration-tests -c                    \
                "cd /app &&                                              \
                 pip install --upgrade pip -q &&                         \
                 pip install -r test/python/requirements.txt -q &&       \
@@ -163,13 +163,13 @@ run_tests_all() {
     device=$1
     shift
 
-    run_tests --device $device -k "tezos" $*
+    run_tests --device $device -k "mavryk" $*
 }
 
 update() {
     device=$1
 
-    build_app_tezos $device
+    build_app_mavryk $device
     build_app_ethereum $device
     build_app_exchange $device
     run_tests_all $device --tb=short -v --golden_run
@@ -185,8 +185,8 @@ case $1 in
         build_app_ethereum $2
         ;;
 
-    build_app_tezos)
-        build_app_tezos $2
+    build_app_mavryk)
+        build_app_mavryk $2
         ;;
 
     run_tests)

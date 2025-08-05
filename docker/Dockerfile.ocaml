@@ -1,9 +1,9 @@
 FROM ocaml/opam:ubuntu-24.04-ocaml-4.14
 
-# Setup a tezos environement
-COPY --chown=opam:opam tezos /opt/tezos
+# Setup a mavryk environement
+COPY --chown=opam:opam mavryk-protocol /opt/mavryk
 USER opam
-WORKDIR /opt/tezos
+WORKDIR /opt/mavryk
 
 # Install Rust
 RUN sudo apt-get -y install wget
@@ -13,14 +13,14 @@ RUN RUSTUP_TOOLCHAIN=1.71.1 &&                                                  
     ./rustup-init.sh --profile minimal --default-toolchain $RUSTUP_TOOLCHAIN -y
 ENV PATH=/home/opam/.cargo/bin:$PATH
 
-# Install Tezos deps
+# Install Mavryk deps
 RUN rm -rf _opam/ && \
     make build-deps && \
     eval $(opam env) && \
     make install && \
-    dune install tezos-protocol-018-Proxford && \
-    dune install tezos-benchmarks-proto-018-Proxford
-ENV OPAMSWITCH=/opt/tezos
+    dune install mavryk-protocol-001-PtAtLas && \
+    dune install mavryk-benchmarks-proto-001-PtAtLas
+ENV OPAMSWITCH=/opt/mavryk
 
 # Get the default opam remote
 RUN opam remote add opam https://opam.ocaml.org && \

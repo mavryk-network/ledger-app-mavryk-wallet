@@ -1,4 +1,4 @@
-/* Tezos Embedded C parser for Ledger - Big num parser
+/* Mavryk Embedded C parser for Ledger - Big num parser
 
    Copyright 2023 Nomadic Labs <contact@nomadic-labs.com>
    Copyright 2023 Functori <contact@functori.com>
@@ -25,8 +25,8 @@
  * @param buffers: number parser buffers
  * @param regs: number parser register
  */
-void tz_parse_num_state_init(tz_num_parser_buffer *buffers,
-                             tz_num_parser_regs   *regs);
+void mv_parse_num_state_init(mv_num_parser_buffer *buffers,
+                             mv_num_parser_regs   *regs);
 
 /**
  * @brief Parse one byte
@@ -35,10 +35,10 @@ void tz_parse_num_state_init(tz_num_parser_buffer *buffers,
  * @param regs: number parser register
  * @param b: byte to parse
  * @param natural: if the number to read is natural
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-tz_parser_result tz_parse_num_step(tz_num_parser_buffer *buffers,
-                                   tz_num_parser_regs *regs, uint8_t b,
+mv_parser_result mv_parse_num_step(mv_num_parser_buffer *buffers,
+                                   mv_num_parser_regs *regs, uint8_t b,
                                    bool natural);
 
 /**
@@ -47,10 +47,10 @@ tz_parser_result tz_parse_num_step(tz_num_parser_buffer *buffers,
  * @param buffers: number parser buffers
  * @param regs: number parser register
  * @param b: byte to parse
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-tz_parser_result tz_parse_int_step(tz_num_parser_buffer *buffers,
-                                   tz_num_parser_regs *regs, uint8_t b);
+mv_parser_result mv_parse_int_step(mv_num_parser_buffer *buffers,
+                                   mv_num_parser_regs *regs, uint8_t b);
 
 /**
  * @brief Parse one byte to read a natural number
@@ -58,16 +58,16 @@ tz_parser_result tz_parse_int_step(tz_num_parser_buffer *buffers,
  * @param buffers: number parser buffers
  * @param regs: number parser register
  * @param b: byte to parse
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-tz_parser_result tz_parse_nat_step(tz_num_parser_buffer *buffers,
-                                   tz_num_parser_regs *regs, uint8_t b);
+mv_parser_result mv_parse_nat_step(mv_num_parser_buffer *buffers,
+                                   mv_num_parser_regs *regs, uint8_t b);
 
 /**
- * @brief format a buffer to mutez number
+ * @brief format a buffer to mumav number
  *
  * @param in: intput buffer
  * @param out: output number
  * @return bool: success
  */
-bool tz_string_to_mutez(const char *in, uint64_t *out);
+bool mv_string_to_mumav(const char *in, uint64_t *out);

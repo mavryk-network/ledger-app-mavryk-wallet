@@ -1,4 +1,4 @@
-# Tezos Ledger Wallet App
+# Mavryk Ledger Wallet App
 
 ## Interfaces
 
@@ -136,7 +136,7 @@ First, start a container for running individual tests:
 
 ```sh
 docker run --rm -it --entrypoint /bin/bash -v $(pwd):/app --network host \
-  ledger-app-tezos-integration-tests
+  ledger-app-mavryk-integration-tests
 
 cd /app
 
@@ -173,18 +173,18 @@ Our swap tests are located in the https://github.com/functori/app-exchange repos
 You must have a clone of this repository. In the commands below, it must be referenced in the `APP_EXCHANGE_REPO` variable.
 
 In some of the commands below, other variables will be required:
-- `APP_TEZOS_REPO`: your clone of the https://github.com/trilitech/ledger-app-tezos-wallet repository
+- `APP_MAVRYK_REPO`: your clone of the https://github.com/mavryk-network/ledger-app-mavryk-wallet repository
 - `APP_ETH_REPO`: your clone of the https://github.com/LedgerHQ/app-ethereum repository
 The commands below will consider the version of the current branch of each repository.
 
 ### Preparation
 
-Make sure that the Tezos, Ethereum, and Exchange apps are built and set up correctly in the app-exchange repository.
+Make sure that the Mavryk, Ethereum, and Exchange apps are built and set up correctly in the app-exchange repository.
 If not, run :
 ```sh
 ./scripts/test_swap.sh build_app_exchange $DEVICE
 ./scripts/test_swap.sh build_app_ethereum $DEVICE
-./scripts/test_swap.sh build_app_tezos    $DEVICE
+./scripts/test_swap.sh build_app_mavryk    $DEVICE
 ```
 
 ### Running
@@ -205,7 +205,7 @@ You can run :
 ```sh
 ./scripts/test_swap.sh update $DEVICE
 ```
-to perform all snapshot update steps based on your current Tezos repository.
+to perform all snapshot update steps based on your current Mavryk repository.
 
 ## Contributing
 

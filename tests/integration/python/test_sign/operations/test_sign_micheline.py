@@ -24,9 +24,9 @@ import pytest
 from _pytest.mark import ParameterSet
 
 from utils.account import Account
-from utils.backend import TezosBackend
+from utils.backend import MavrykBackend
 from utils.message import Default, MichelineExpr, Micheline
-from utils.navigator import TezosNavigator
+from utils.navigator import MavrykNavigator
 
 sequence_cases: List[Tuple[Micheline, str]] = [
     ([], "empty"),
@@ -173,7 +173,7 @@ prim_cases: List[Tuple[Micheline, str]] = [
     ({"prim": "SLICE"}, "SLICE"),
     ({"prim": "STEPS_TO_QUOTA"}, "STEPS_TO_QUOTA"),  # deprecated
     ({"prim": "SUB"}, "SUB"),
-    ({"prim": "SUB_MUTEZ"}, "SUB_MUTEZ"),
+    ({"prim": "SUB_MUMAV"}, "SUB_MUMAV"),
     ({"prim": "SWAP"}, "SWAP"),
     ({"prim": "TRANSFER_TOKENS"}, "TRANSFER_TOKENS"),
     ({"prim": "SET_DELEGATE"}, "SET_DELEGATE"),
@@ -229,7 +229,7 @@ prim_cases: List[Tuple[Micheline, str]] = [
     ({"prim": "signature"}, "signature"),
     ({"prim": "string"}, "string"),
     ({"prim": "bytes"}, "bytes"),
-    ({"prim": "mutez"}, "mutez"),
+    ({"prim": "mumav"}, "mumav"),
     ({"prim": "timestamp"}, "timestamp"),
     ({"prim": "unit"}, "unit"),
     ({"prim": "operation"}, "operation"),
@@ -267,7 +267,7 @@ real_cases: List[Tuple[Micheline, str]] = [
             {"prim": "nat", "annots": [":counter"]},
             {"prim": "or", "annots": [":action"], 'args': [
                 {"prim": "pair", "annots": [":transfer"], 'args': [
-                    {"prim": "mutez", "annots": [":amount"]},
+                    {"prim": "mumav", "annots": [":amount"]},
                     {"prim": "contract", "annots": [":dest"], 'args': [{"prim": "unit"}]}
                 ]},
                 {"prim": "or", 'args': [
@@ -288,7 +288,7 @@ real_cases: List[Tuple[Micheline, str]] = [
             {"prim": "Left", 'args': [
                 {"prim": "Pair", 'args': [
                     {"int": 123456789},
-                    {"string": "tz1Ke2h7sDdakHJQh8WX4Z372du1KChsksyU"}
+                    {"string": "mv1PhA8Lnzy7emo2o6PuyvPvBqCEU5ddW1u7"}
                 ]},
             ]},
         ]},
@@ -372,8 +372,8 @@ def _all_params(cases: List[Tuple[List[Tuple[Micheline, str]], str]]) -> List[Pa
     ])
 )
 def test_sign_micheline(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path,
         micheline: Micheline
@@ -383,7 +383,7 @@ def test_sign_micheline(
     message = MichelineExpr(micheline)
 
     with backend.sign(account, message, with_hash=False) as result:
-        tezos_navigator.accept_sign(snap_path=snapshot_dir)
+        mavryk_navigator.accept_sign(snap_path=snapshot_dir)
 
     account.check_signature(
         message=message,
