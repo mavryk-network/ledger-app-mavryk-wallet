@@ -92,7 +92,7 @@ CURVE_APP_LOAD_PARAMS = ed25519 secp256k1 secp256r1
 # and SLIP-0044 standards.
 # If your app needs it, you can specify multiple path by using:
 # `PATH_APP_LOAD_PARAMS = "44'/1'" "45'/1'"`
-PATH_APP_LOAD_PARAMS = "44'/1729'"
+PATH_APP_LOAD_PARAMS = "44'/1969'"
 
 # Setting to allow building variant applications
 # - <VARIANT_PARAM> is the name of the parameter which should be set

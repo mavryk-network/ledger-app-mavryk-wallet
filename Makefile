@@ -105,7 +105,7 @@ integration_tests_basic_%:	app_%.tgz   \
 		TMP_DIR=\$$(mktemp -d /tmp/foo-XXXXXX);                   \
 		cd /app;                                                  \
 		tar xfz app_$*_dbg.tgz -C \$$TMP_DIR;                     \
-		apt install -y libsodium-dev;     \
+		apt update && apt install -y libsodium-dev libgmp-dev libsodium23;     \
 		python3 -m venv mavryk_test_env --system-site-package;     \
 		source ./mavryk_test_env/bin/activate;                     \
 		python3 -m pip install --upgrade pip -q;                  \

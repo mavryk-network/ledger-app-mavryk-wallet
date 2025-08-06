@@ -415,7 +415,7 @@ let seed24 =
      silver library foster cinnamon spring discover gauge faint hammer test \
      air cream"
 
-let default_path = [ 44; 1729; 0; 0 ]
+let default_path = [ 44; 1969; 0; 0 ]
 let path_0 = [ 0 ]
 let path_2_11_5 = [ 2; 11; 5 ]
 let path_17_8_6_9 = [ 17; 8; 6; 9 ]

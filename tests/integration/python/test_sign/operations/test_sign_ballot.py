@@ -44,8 +44,8 @@ class TestBallot(TestOperation):
             Field.Case(0x80000000, "min"),  # min int32
         ]),
         Field("proposal", "Proposal", [
-            Field.Case('PsParisCZo7KAh1Z1smVd9ZMZ1HHn5gkzbM94V3PLCpknFWhUAi', "basic"),
-            Field.Case('Ptd4kYMModZQ6Mh4ZRNMmWpM799PgSzjmGw3GM9Q2SDqqo8WCW8', "long-hash"),
+            Field.Case('PtBzwViMCC1gfm98y5TDKqz2e3vjBXPAUoWu7jfEcN6yj2ZhCyT', "basic"),
+            Field.Case('PtBzwViMCC1gfm98y5TDKqz2e3vjBXPAUoWu7jfEcN6yj2ZhCyT', "long-hash"), #Ptd4kYMModZQ6Mh4ZRNMmWpM799PgSzjmGw3GM9Q2SDqqo8WCW8
         ]),
         Field("ballot", "Ballot", [
             Field.Case('yay', "yay"),

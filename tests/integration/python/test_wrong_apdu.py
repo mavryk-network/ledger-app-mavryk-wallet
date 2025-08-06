@@ -131,7 +131,7 @@ def test_wrong_index(backend: MavrykBackend, account: Account, ins: Ins, index: 
 )
 def test_wrong_derivation_type(backend: MavrykBackend, sender: Callable[[MavrykBackend, Account], Any]):
     """Check wrong derivation type behaviour"""
-    account = Account("m/44'/1729'/0'/0'", 0x04, "__unused__")
+    account = Account("m/44'/1969'/0'/0'", 0x04, "__unused__")
 
     with StatusCode.WRONG_PARAM.expected():
         sender(backend, account)

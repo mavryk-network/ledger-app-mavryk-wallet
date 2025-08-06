@@ -25,16 +25,16 @@ from utils.backend import MavrykBackend, StatusCode
 from utils.navigator import MavrykNavigator
 
 accounts = [
-    Account("m/44'/1729'/0'/0'",
+    Account("m/44'/1969'/0'/0'",
             SigType.ED25519,
             "edpkuXX2VdkdXzkN11oLCb8Aurdo1BTAtQiK8ZY9UPj2YMt3AHEpcY"),
-    Account("m/44'/1729'/0'/0'",
+    Account("m/44'/1969'/0'/0'",
             SigType.SECP256K1,
             "sppk7bVy617DmGvXsMqcwsiLtnedTN2trUi5ugXcNig7en4rHJyunK1"),
-    Account("m/44'/1729'/0'/0'",
+    Account("m/44'/1969'/0'/0'",
             SigType.SECP256R1,
             "p2pk67fq5pzuMMABZ9RDrooYbLrgmnQbLt8z7PTGM9mskf7LXS5tdBG"),
-    Account("m/44'/1729'/0'/0'",
+    Account("m/44'/1969'/0'/0'",
             SigType.BIP32_ED25519,
             "edpkumJgSsSxkpiB5hmTq6eZcrmc6BsJtLAhYceFTiziFqje4mongz")
 ]
