@@ -73,11 +73,11 @@ APP_SOURCE_PATH += src src/parser
 
 # Application icons following guidelines:
 # https://developers.ledger.com/docs/embedded-app/design-requirements/#device-icon
-ICON_NANOS = icons/nano-s-mavryk.gif
-ICON_NANOX = icons/nano-x-mavryk.gif
-ICON_NANOSP = icons/nano-x-mavryk.gif
-ICON_STAX = icons/stax_mavryk.gif
-ICON_FLEX = icons/flex_mavryk.gif
+ICON_NANOS = icons/nano-s-mavryk.png
+ICON_NANOX = icons/nano-x-mavryk.png
+ICON_NANOSP = icons/nano-x-mavryk.png
+ICON_STAX = icons/stax_mavryk.png
+ICON_FLEX = icons/flex_mavryk.png
 
 # Application allowed derivation curves.
 # Possibles curves are: secp256k1, secp256r1, ed25519 and bls12381g1
