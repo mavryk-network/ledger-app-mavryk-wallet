@@ -49,7 +49,7 @@ BASIC_OPERATION = OperationGroup([
         counter = 11,
         gas_limit = 1,
         storage_limit = 4,
-        public_key = 'p2pk66m3NQsd4n6LJWe9WMwx9WHeXwKmBaMwXX92WkMQCR99zmwk2PM'
+        public_key = 'p2pk65YHEfEbWo7iMrz7JNjBvaYZNFBHU8vzCQEhw8rmbvAKuiGGiXS'
     ),
     Transaction(
         source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',

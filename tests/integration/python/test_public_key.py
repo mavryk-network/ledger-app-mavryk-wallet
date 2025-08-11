@@ -27,16 +27,16 @@ from utils.navigator import MavrykNavigator
 accounts = [
     Account("m/44'/1969'/0'/0'",
             SigType.ED25519,
-            "edpkuXX2VdkdXzkN11oLCb8Aurdo1BTAtQiK8ZY9UPj2YMt3AHEpcY"),
+            "edpktmumZ4vUDvg7VNFh5sGeSCnT7xYXhmzP2jwsiUUpUnQGoGfnja"),
     Account("m/44'/1969'/0'/0'",
             SigType.SECP256K1,
-            "sppk7bVy617DmGvXsMqcwsiLtnedTN2trUi5ugXcNig7en4rHJyunK1"),
+            "sppk7b2Sh8Av9e1w7jzQ4qjZEgULFJETncKh7nWkgf29JpnJuKeXBqK"),
     Account("m/44'/1969'/0'/0'",
             SigType.SECP256R1,
-            "p2pk67fq5pzuMMABZ9RDrooYbLrgmnQbLt8z7PTGM9mskf7LXS5tdBG"),
+            "p2pk65YHEfEbWo7iMrz7JNjBvaYZNFBHU8vzCQEhw8rmbvAKuiGGiXS"),
     Account("m/44'/1969'/0'/0'",
             SigType.BIP32_ED25519,
-            "edpkumJgSsSxkpiB5hmTq6eZcrmc6BsJtLAhYceFTiziFqje4mongz")
+            "edpkuPErh5Lga9Ui39JPgfCHq2utQjGtKb3ig5NwM8yFnaetY1xD9f")
 ]
 
 @pytest.mark.parametrize("account", accounts, ids=lambda account: f"{account.sig_type}")

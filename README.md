@@ -165,6 +165,42 @@ pytest tests/integration/python/<test_name>.py \
 
 You can reset/set goldimages using the `--golden-run` option
 
+**Regenerating All Snapshots**
+
+To regenerate all snapshot images (useful after UI changes), use the comprehensive script:
+
+```sh
+# Regenerate ALL snapshots for ALL devices
+./regenerate-all-snapshots.sh
+```
+
+This script will:
+- Process all devices: nanos, nanosp, nanox, stax, flex
+- Run multiple iterations per device to gradually build up all snapshots
+- Stop automatically when no significant improvement is made
+- Provide detailed progress and statistics
+- Handle the fact that tests stop on first snapshot mismatch
+
+**Alternative: Single device with Makefile**
+```sh
+make regenerate_snapshots_nanosp  # For Nano S+
+make regenerate_snapshots_nanos   # For Nano S
+make regenerate_snapshots_nanox   # For Nano X
+make regenerate_snapshots_stax    # For Stax
+make regenerate_snapshots_flex    # For Flex
+```
+
+**Note:** The comprehensive script handles the fact that tests stop generating snapshots after the first image mismatch within a test. It runs multiple iterations to gradually build up all snapshots across all devices.
+
+**Cleaning Snapshots**
+
+To clean up snapshots before regenerating:
+```sh
+rm -rf tests/integration/python/snapshots-tmp
+rm -rf tests/integration/python/snapshots
+mkdir -p tests/integration/python/snapshots
+```
+
 ## Swap test
 
 ### Requirement

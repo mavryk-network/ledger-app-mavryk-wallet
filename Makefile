@@ -109,10 +109,34 @@ integration_tests_basic_%:	app_%.tgz   \
 		python3 -m venv mavryk_test_env --system-site-package;     \
 		source ./mavryk_test_env/bin/activate;                     \
 		python3 -m pip install --upgrade pip -q;                  \
+		python3 -m pip install --force-reinstall python-dateutil==2.8.2 -q;     \
 		python3 -m pip install -r tests/requirements.txt -q ;     \
 		python3 -m pytest -n 32 tests/integration/python/ --tb=no \
 			--device $* --app \$$TMP_DIR/app.elf              \
 			--log-dir integration_tests_log"
+
+regenerate_snapshots_%:	app_%_dbg.tgz
+	docker run --rm -i -v "$(realpath .):/app" \
+	--entrypoint=/bin/bash ledger-app-mavryk-integration-tests -c "  \
+		TMP_DIR=\$$(mktemp -d /tmp/foo-XXXXXX);                   \
+		cd /app;                                                  \
+		tar xfz app_$*_dbg.tgz -C \$$TMP_DIR;                     \
+		apt update && apt install -y libsodium-dev libgmp-dev libsodium23;     \
+		python3 -m venv mavryk_test_env --system-site-package;     \
+		source ./mavryk_test_env/bin/activate;                     \
+		python3 -m pip install --upgrade pip -q;                  \
+		python3 -m pip install --force-reinstall python-dateutil==2.8.2 -q;     \
+		python3 -m pip install -r tests/requirements.txt -q ;     \
+		python3 -m pytest -n 32 tests/integration/python/ --tb=no \
+			--device $* --app \$$TMP_DIR/app.elf              \
+			--log-dir integration_tests_log --golden-run --maxfail=0 || true"
+	rsync -a tests/integration/python/snapshots-tmp/ tests/integration/python/snapshots/
+
+regenerate_snapshots:	regenerate_snapshots_nanos	\
+				regenerate_snapshots_nanosp	\
+				regenerate_snapshots_nanox	\
+				regenerate_snapshots_stax	\
+				regenerate_snapshots_flex
 
 integration_tests_basic:	integration_tests_basic_nanos	\
 				integration_tests_basic_nanosp	\

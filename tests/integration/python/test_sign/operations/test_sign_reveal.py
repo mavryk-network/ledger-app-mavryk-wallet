@@ -31,10 +31,10 @@ class TestReveal(TestOperation):
 
     fields = [
         Field("public_key", "Public key", [
-            Field.Case('edpkvMUjmJu9CYyKBAjUV3jtU8Y89TemDAcD29bSNh393Bc8z8BH3t', "mv1"),
-            Field.Case('sppk7ZT8R42AGSy672NHz9ps6Q4idqWYejAgMwqTWnyYAeq9XZEqWvZ', "mv2"),
-            Field.Case('p2pk665znpiyPRWEwpu8tZ7JdNPipkfYpGUhYALjaS4Tm7F7wcx1iRs', "mv3"),
+            Field.Case('edpktmumZ4vUDvg7VNFh5sGeSCnT7xYXhmzP2jwsiUUpUnQGoGfnja', "mv1"),
+            Field.Case('sppk7b2Sh8Av9e1w7jzQ4qjZEgULFJETncKh7nWkgf29JpnJuKeXBqK', "mv2"),
+            Field.Case('p2pk65YHEfEbWo7iMrz7JNjBvaYZNFBHU8vzCQEhw8rmbvAKuiGGiXS', "mv3"),
             Field.Case('BLpk1koaE6qJifAmUjjeukrgUdZaHCWWcHj6fBqrQLSWvVwHfqNcKKCSv5GxxVHhGirQbjHFsTTk', "mv4"),
-            Field.Case('edpkuWUfaAWqaxJoG9QKgQRQUHMWfsN1EmoMMXWMwYoE8kjWMWUGDk', "long-hash"),
+            Field.Case('edpkuPErh5Lga9Ui39JPgfCHq2utQjGtKb3ig5NwM8yFnaetY1xD9f', "long-hash"),
         ]),
     ]
