@@ -57,7 +57,7 @@ _assert_eth_repo() {
 
 _assert_app_exchange_repo() {
     set +x
-    message="APP_EXCHANGE_REPO must refer to a clone of the https://github.com/functori/app-exchange repository"
+    message="APP_EXCHANGE_REPO must refer to a clone of the https://github.com/mavryk-network/app-exchange repository"
     if [ ! -v APP_EXCHANGE_REPO ]; then
         echo "The variable \$APP_EXCHANGE_REPO is missing"
         echo $message

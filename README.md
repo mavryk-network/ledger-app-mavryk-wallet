@@ -205,7 +205,7 @@ mkdir -p tests/integration/python/snapshots
 
 ### Requirement
 
-Our swap tests are located in the https://github.com/functori/app-exchange repository.
+Our swap tests are located in the https://github.com/mavryk-network/app-exchange repository.
 You must have a clone of this repository. In the commands below, it must be referenced in the `APP_EXCHANGE_REPO` variable.
 
 In some of the commands below, other variables will be required:
@@ -220,7 +220,7 @@ If not, run :
 ```sh
 ./scripts/test_swap.sh build_app_exchange $DEVICE
 ./scripts/test_swap.sh build_app_ethereum $DEVICE
-./scripts/test_swap.sh build_app_mavryk    $DEVICE
+./scripts/test_swap.sh build_app_mavryk   $DEVICE
 ```
 
 ### Running

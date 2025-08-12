@@ -36,8 +36,8 @@ void mv_ui_home_redisplay(void);
 #define SETTING_INFO_NB 3
 
 static const char *const infoTypes[]    = {"Version", "Developer", "Contact"};
-static const char *const infoContents[] = {
-    APPVERSION, "Mavryk Dynamics LTD.", "info@mavryk.io"};
+static const char *const infoContents[] 
+    = {APPVERSION, "Mavryk Dynamics LTD.", "info@mavryk.io"};
 
 enum {
     EXPERT_MODE_TOKEN = FIRST_USER_TOKEN,
@@ -87,7 +87,8 @@ static const nbgl_genericContents_t mavryk_settingContents
        .nbContents         = SETTINGS_CONTENTS_NB};
 ;
 
-#define HOME_TEXT "This app enables signing transactions on the Mavryk Network"
+#define HOME_TEXT \
+    "This app enables signing transactions on the Mavryk Network"
 void
 initSettings(void)
 {
