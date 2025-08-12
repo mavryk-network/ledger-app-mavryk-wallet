@@ -285,6 +285,7 @@ def test_sign_too_long_operation_with_only_transactions(
         data=result.value
     )
 
+@pytest.mark.skip(reason="Mavryk has fewer proposals than Tezos, not enough to trigger blind signing. Will be re-enabled when Mavryk has more proposals.")
 def test_sign_too_long_operation_without_fee_or_amount(
         backend: MavrykBackend,
         firmware: Firmware,
