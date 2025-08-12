@@ -68,14 +68,14 @@ void
 handle_get_public_key(buffer_t *cdata, derivation_type_t derivation_type,
                       bool prompt)
 {
-    TZ_PREAMBLE(("cdata=%p, derivation_type=%d, prompt=%d", cdata,
+    MV_PREAMBLE(("cdata=%p, derivation_type=%d, prompt=%d", cdata,
                  derivation_type, prompt));
 
     global.path_with_curve.derivation_type = derivation_type;
-    TZ_LIB_CHECK(read_bip32_path(&global.path_with_curve.bip32_path, cdata));
+    MV_LIB_CHECK(read_bip32_path(&global.path_with_curve.bip32_path, cdata));
 
     // Derive public key and store it on global.keys.pubkey
-    TZ_LIB_CHECK(derive_pk(&global.keys.pubkey,
+    MV_LIB_CHECK(derive_pk(&global.keys.pubkey,
                            global.path_with_curve.derivation_type,
                            &global.path_with_curve.bip32_path));
 
@@ -87,5 +87,5 @@ handle_get_public_key(buffer_t *cdata, derivation_type_t derivation_type,
         send_pubkey_response(true);
     }
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }

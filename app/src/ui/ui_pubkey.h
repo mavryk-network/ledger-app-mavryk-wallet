@@ -26,7 +26,7 @@
 #include "keys.h"
 #include "ui_commons.h"
 
-#define PUBKEY_HASH_SIZE TZ_BASE58CHECK_BUFFER_SIZE(20, 3)
+#define PUBKEY_HASH_SIZE MV_BASE58CHECK_BUFFER_SIZE(20, 3)
 
 /**
  * @brief Holds data for public key review.
@@ -34,7 +34,7 @@
 typedef struct {
     char               address[PUBKEY_HASH_SIZE];
     action_validate_cb callback;
-} tz_ui_pubkey_t;
+} mv_ui_pubkey_t;
 
 /**
  * @brief Displays a public key review request

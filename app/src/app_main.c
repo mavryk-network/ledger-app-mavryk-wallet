@@ -63,8 +63,7 @@ print_memory_layout(void)
     PRINTF("[SIZEOF] G_ux_os: %u\n", sizeof(G_ux_os));
     PRINTF("[PTR]    G_ux_params: 0x%p\n", &G_ux_params);
     PRINTF("[SIZEOF] G_ux_params: %u\n", sizeof(G_ux_params));
-    PRINTF("[PTR]    G_io_usb_ep_buffer: 0x%p\n", G_io_usb_ep_buffer);
-    PRINTF("[SIZEOF] G_io_usb_ep_buffer: %d\n", sizeof(G_io_usb_ep_buffer));
+
     PRINTF("[PTR]    G_io_app: 0x%p\n", &G_io_app);
     PRINTF("[SIZEOF] G_io_app: %d\n", sizeof(G_io_app));
 }
@@ -85,7 +84,7 @@ app_main(void)
     /* ST_ERROR implies that we are completely unknown and need to reset */
     global.step = ST_ERROR;
     for (;;) {
-        TZ_PREAMBLE(("void"));
+        MV_PREAMBLE(("void"));
 #ifdef HAVE_SWAP
         if (G_called_from_swap) {
             global.step = ST_SWAP_SIGN;
@@ -107,7 +106,7 @@ app_main(void)
 
         if (!apdu_parser(&cmd, G_io_apdu_buffer, input_len)) {
             PRINTF("[ERROR] Bad length: %d\n", input_len);
-            TZ_FAIL(EXC_WRONG_LENGTH_FOR_INS);
+            MV_FAIL(EXC_WRONG_LENGTH_FOR_INS);
         }
 
         PRINTF(
@@ -115,8 +114,8 @@ app_main(void)
             "CData=%.*H\n",
             cmd.cla, cmd.ins, cmd.p1, cmd.p2, cmd.lc, cmd.lc, cmd.data);
 
-        TZ_CHECK(dispatch(&cmd));
+        MV_CHECK(dispatch(&cmd));
 
-        TZ_POSTAMBLE;
+        MV_POSTAMBLE;
     }
 }

@@ -24,8 +24,8 @@ from ragger.firmware import Firmware
 from ragger.navigator import Navigator, NanoNavigator, TouchNavigator
 
 from utils.account import Account, DEFAULT_ACCOUNT, DEFAULT_SEED
-from utils.backend import TezosBackend, SpeculosTezosBackend
-from utils.navigator import TezosNavigator
+from utils.backend import MavrykBackend, SpeculosMavrykBackend
+from utils.navigator import MavrykNavigator
 
 FIRMWARES: List[Firmware] = [
     Firmware.NANOS,
@@ -124,7 +124,7 @@ def backend(app_path: Path,
             port: int,
             display: bool,
             seed: str,
-            speculos_args: List[str]) -> Generator[TezosBackend, None, None]:
+            speculos_args: List[str]) -> Generator[MavrykBackend, None, None]:
     """Get `backend` for pytest."""
 
     if display:
@@ -136,7 +136,7 @@ def backend(app_path: Path,
         "--seed", seed
     ]
 
-    backend = SpeculosTezosBackend(app_path,
+    backend = SpeculosMavrykBackend(app_path,
                                    firmware,
                                    args=speculos_args)
 
@@ -144,17 +144,17 @@ def backend(app_path: Path,
         yield b
 
 @pytest.fixture(scope="function")
-def tezos_navigator(
-        backend: TezosBackend,
+def mavryk_navigator(
+        backend: MavrykBackend,
         firmware: Firmware,
         golden_run: bool
-) -> TezosNavigator:
+) -> MavrykNavigator:
     """Get `navigator` for pytest."""
     if firmware.is_nano:
         navigator: Navigator = NanoNavigator(backend, firmware, golden_run)
     else:
         navigator = TouchNavigator(backend, firmware, golden_run)
-    return TezosNavigator(backend, firmware, navigator)
+    return MavrykNavigator(backend, firmware, navigator)
 
 @pytest.fixture(scope="function")
 def snapshot_dir(request) -> Path :

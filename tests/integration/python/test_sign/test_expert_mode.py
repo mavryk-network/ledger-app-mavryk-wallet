@@ -23,9 +23,9 @@ import pytest
 from ragger.navigator import NavInsID
 
 from utils.account import Account
-from utils.backend import StatusCode, TezosBackend
+from utils.backend import StatusCode, MavrykBackend
 from utils.message import Default, RegisterGlobalConstant
-from utils.navigator import TezosNavigator, TezosNavInsID
+from utils.navigator import MavrykNavigator, MavrykNavInsID
 
 
 EXPERT_OPERATION = RegisterGlobalConstant(
@@ -34,8 +34,8 @@ EXPERT_OPERATION = RegisterGlobalConstant(
 
 
 def test_reject_expert_mode(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
@@ -43,24 +43,24 @@ def test_reject_expert_mode(
 
     with StatusCode.REJECT.expected():
         with backend.sign(account, EXPERT_OPERATION):
-            tezos_navigator.expert_reject_sign(snap_path=snapshot_dir)
+            mavryk_navigator.expert_reject_sign(snap_path=snapshot_dir)
 
 
 @pytest.mark.use_on_device("touch")
 def test_enable_expert_mode_in_review(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
     """Check that expert mode can be activated from review on touch devices."""
 
     with backend.sign(account, EXPERT_OPERATION):
-        tezos_navigator.expert_accept_sign(snap_path=snapshot_dir / "review_expert")
-        tezos_navigator.accept_sign(snap_path=snapshot_dir / "review")
+        mavryk_navigator.expert_accept_sign(snap_path=snapshot_dir / "review_expert")
+        mavryk_navigator.accept_sign(snap_path=snapshot_dir / "review")
 
     # To ensure that expert mode is ON
-    tezos_navigator.navigate_to_settings(
+    mavryk_navigator.navigate_to_settings(
         screen_change_before_first_instruction=True,
         snap_path=snapshot_dir / "check"
     )
@@ -68,8 +68,8 @@ def test_enable_expert_mode_in_review(
 
 @pytest.mark.use_on_device("touch")
 def test_reject_sign_at_expert_mode_after_enabling(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
@@ -77,13 +77,13 @@ def test_reject_sign_at_expert_mode_after_enabling(
 
     with StatusCode.REJECT.expected():
         with backend.sign(account, EXPERT_OPERATION):
-            tezos_navigator.expert_accept_sign(
+            mavryk_navigator.expert_accept_sign(
                 screen_change_after_last_instruction=False
             )
-            tezos_navigator.navigate(
+            mavryk_navigator.navigate(
                 instructions=[
                     NavInsID.USE_CASE_REVIEW_REJECT,
-                    TezosNavInsID.REJECT_CHOICE_CONFIRM,
+                    MavrykNavInsID.REJECT_CHOICE_CONFIRM,
                     NavInsID.USE_CASE_STATUS_DISMISS,
                 ],
                 screen_change_before_first_instruction=True,
@@ -93,21 +93,21 @@ def test_reject_sign_at_expert_mode_after_enabling(
 
 @pytest.mark.use_on_device("touch")
 def test_reject_sign_at_expert_mode_when_enabled(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
     """Check reject at expert splash screen if expert mode already enabled"""
 
-    tezos_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_expert_mode()
 
     with StatusCode.REJECT.expected():
         with backend.sign(account, EXPERT_OPERATION):
-            tezos_navigator.expert_splash_navigate(
+            mavryk_navigator.expert_splash_navigate(
                 validation_instructions=[
                     NavInsID.USE_CASE_REVIEW_REJECT,
-                    TezosNavInsID.REJECT_CHOICE_CONFIRM,
+                    MavrykNavInsID.REJECT_CHOICE_CONFIRM,
                     NavInsID.USE_CASE_STATUS_DISMISS,
                 ],
                 snap_path=snapshot_dir

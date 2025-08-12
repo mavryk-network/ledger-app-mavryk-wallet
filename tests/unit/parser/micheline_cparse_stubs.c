@@ -26,7 +26,7 @@ micheline_cparse_capture_name(value mlstate)
 {
     CAMLparam1(mlstate);
     CAMLlocal1(r);
-    tz_parser_state **state = Data_abstract_val(mlstate);
+    mv_parser_state **state = Data_abstract_val(mlstate);
     r = caml_copy_string((*state)->field_info.field_name);
     CAMLreturn(r);
 }
@@ -37,14 +37,14 @@ micheline_cparse_init(value size)
     CAMLparam1(size);
     CAMLlocal1(r);
     r                      = caml_alloc(sizeof(value), Abstract_tag);
-    tz_parser_state *state = malloc(sizeof(tz_parser_state));
-    *((tz_parser_state **)Data_abstract_val(r)) = state;
-    tz_micheline_parser_init(state);
+    mv_parser_state *state = malloc(sizeof(mv_parser_state));
+    *((mv_parser_state **)Data_abstract_val(r)) = state;
+    mv_micheline_parser_init(state);
     size_t s = Long_val(size);
     if (s >= 0xFFFF) {
         caml_failwith("micheline_cparse_init: size too large");
     }
-    tz_operation_parser_init(state, (uint16_t)s, 1);
+    mv_operation_parser_init(state, (uint16_t)s, 1);
     CAMLreturn(r);
 }
 
@@ -62,8 +62,8 @@ micheline_cparse_step(value mlstate, value input, value output)
     // Data_abstract_val() returns a value that could change.
     // It must be dereferenced before being used.
     // https://gitlab.com/nomadic-labs/tezos-ledger-app-revamp/-/merge_requests/58#note_1434368804
-    tz_parser_state *state
-        = *((tz_parser_state **)Data_abstract_val(mlstate));
+    mv_parser_state *state
+        = *((mv_parser_state **)Data_abstract_val(mlstate));
 
     state->regs.ibuf = Bytes_val(ibuf);
     state->regs.iofs = iofs;
@@ -72,7 +72,7 @@ micheline_cparse_step(value mlstate, value input, value output)
     state->regs.oofs = oofs;
     state->regs.olen = olen;
 
-    while (!TZ_IS_BLOCKED(tz_micheline_parser_step(state))) {
+    while (!MV_IS_BLOCKED(mv_micheline_parser_step(state))) {
         // Loop while the result is successful and not blocking
     }
 
@@ -84,26 +84,26 @@ micheline_cparse_step(value mlstate, value input, value output)
     Store_field(r, 1, Val_int(written));
 
     switch (state->errno) {
-    case TZ_BLO_DONE:
+    case MV_BLO_DONE:
         Store_field(r, 2, Val_int(0));
         break;
-    case TZ_BLO_FEED_ME:
+    case MV_BLO_FEED_ME:
         Store_field(r, 2, Val_int(1));
         break;
-    case TZ_BLO_IM_FULL:
+    case MV_BLO_IM_FULL:
         Store_field(r, 2, Val_int(2));
         break;
-    case TZ_ERR_INVALID_TAG:
+    case MV_ERR_INVALID_TAG:
         caml_failwith("micheline_cparse_step: invalid tag");
-    case TZ_ERR_INVALID_OP:
+    case MV_ERR_INVALID_OP:
         caml_failwith("micheline_cparse_step: invalid operation");
-    case TZ_ERR_UNSUPPORTED:
+    case MV_ERR_UNSUPPORTED:
         caml_failwith("micheline_cparse_step: unsupported data");
-    case TZ_ERR_TOO_LARGE:
+    case MV_ERR_TOO_LARGE:
         caml_failwith("micheline_cparse_step: data size limitation exceeded");
-    case TZ_ERR_TOO_DEEP:
+    case MV_ERR_TOO_DEEP:
         caml_failwith("micheline_cparse_step: expression too deep");
-    case TZ_ERR_INVALID_STATE:
+    case MV_ERR_INVALID_STATE:
         caml_failwith("micheline_cparse_step: invalid state");
     default:
         char err[100];
@@ -129,8 +129,8 @@ operation_cparse_step(value mlstate, value input, value output)
     // Data_abstract_val() returns a value that could change.
     // It must be dereferenced before being used.
     // https://gitlab.com/nomadic-labs/tezos-ledger-app-revamp/-/merge_requests/58#note_1434368804
-    tz_parser_state *state
-        = *((tz_parser_state **)Data_abstract_val(mlstate));
+    mv_parser_state *state
+        = *((mv_parser_state **)Data_abstract_val(mlstate));
 
     state->regs.ibuf = Bytes_val(ibuf);
     state->regs.iofs = iofs;
@@ -139,7 +139,7 @@ operation_cparse_step(value mlstate, value input, value output)
     state->regs.oofs = oofs;
     state->regs.olen = olen;
 
-    while (!TZ_IS_BLOCKED(tz_operation_parser_step(state))) {
+    while (!MV_IS_BLOCKED(mv_operation_parser_step(state))) {
         // Loop while the result is successful and not blocking
     }
 
@@ -151,26 +151,26 @@ operation_cparse_step(value mlstate, value input, value output)
     Store_field(r, 1, Val_int(written));
 
     switch (state->errno) {
-    case TZ_BLO_DONE:
+    case MV_BLO_DONE:
         Store_field(r, 2, Val_int(0));
         break;
-    case TZ_BLO_FEED_ME:
+    case MV_BLO_FEED_ME:
         Store_field(r, 2, Val_int(1));
         break;
-    case TZ_BLO_IM_FULL:
+    case MV_BLO_IM_FULL:
         Store_field(r, 2, Val_int(2));
         break;
-    case TZ_ERR_INVALID_TAG:
+    case MV_ERR_INVALID_TAG:
         caml_failwith("operation_cparse_step: invalid tag");
-    case TZ_ERR_INVALID_OP:
+    case MV_ERR_INVALID_OP:
         caml_failwith("operation_cparse_step: invalid operation");
-    case TZ_ERR_UNSUPPORTED:
+    case MV_ERR_UNSUPPORTED:
         caml_failwith("operation_cparse_step: unsupported data");
-    case TZ_ERR_TOO_LARGE:
+    case MV_ERR_TOO_LARGE:
         caml_failwith("operation_cparse_step: data size limitation exceeded");
-    case TZ_ERR_TOO_DEEP:
+    case MV_ERR_TOO_DEEP:
         caml_failwith("operation_cparse_step: expression too deep");
-    case TZ_ERR_INVALID_STATE:
+    case MV_ERR_INVALID_STATE:
         caml_failwith("operation_cparse_step: invalid state");
     default:
         char err[100];

@@ -18,10 +18,10 @@
 
 import git
 
-from utils.backend import TezosBackend, Version
+from utils.backend import MavrykBackend, Version
 
 
-def test_version(backend: TezosBackend):
+def test_version(backend: MavrykBackend):
     """Test that the app version is the same as the current version."""
     current_version = Version(Version.AppKind.WALLET, 3, 0, 6)
 
@@ -33,7 +33,7 @@ def test_version(backend: TezosBackend):
         f"Expected {current_version} but got {app_version}"
 
 
-def test_git(backend: TezosBackend):
+def test_git(backend: MavrykBackend):
     """Test that the app commit is the same as the current git commit."""
     git_repo = git.Repo(search_parent_directories=True)
     git_describe = git_repo.git.describe(

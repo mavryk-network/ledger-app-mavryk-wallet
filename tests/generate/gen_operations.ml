@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License. *)
 
-open Tezos_protocol_018_Proxford
+open Mavryk_protocol_001_PtAtLas
 
 let gen_lazy_expr =
   let open QCheck2.Gen in
@@ -27,7 +27,7 @@ let gen_script =
   return Protocol.Alpha_context.Script.{ code; storage }
 
 let gen_algo =
-  QCheck2.Gen.oneofl Tezos_crypto.Signature.[ Ed25519; Secp256k1; P256 ]
+  QCheck2.Gen.oneofl Mavryk_crypto.Signature.[ Ed25519; Secp256k1; P256 ]
 
 let gen_from_blake ?(tag = Bytes.empty) ?(size = 32) encoding =
   let open QCheck2.Gen in
@@ -65,7 +65,7 @@ let some_private_key =
 let gen_secret_key =
   let open QCheck2.Gen in
   let+ sk = oneofl some_private_key in
-  Tezos_crypto.Signature.Secret_key.of_b58check_exn sk
+  Mavryk_crypto.Signature.Secret_key.of_b58check_exn sk
 
 let some_public_key =
   [
@@ -98,41 +98,41 @@ let some_public_key =
 let gen_public_key =
   let open QCheck2.Gen in
   let+ pk = oneofl some_public_key in
-  Tezos_crypto.Signature.Public_key.of_b58check_exn pk
+  Mavryk_crypto.Signature.Public_key.of_b58check_exn pk
 
 let some_public_key_hash =
   [
-    "tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa";
-    "tz1er74kx433vTtpYddGsf3dDt5piBZeeHyQ";
-    "tz1McCh72NRhYmJBcWr3zDrLJAxnfR9swcFh";
-    "tz1TmFPVZsGQ8MnrBJtnECJgkFUwLa6EWYDm";
-    "tz1e8fEumaLvXXe5jV52gejCSt3mGodoKut9";
-    "tz1Kp8NCAN5WWwvkWkMmQQXMRe68iURmoQ8w";
-    "tz2W3Tvcm64GjcV2bipUynnEsctLFz5Z6yRa";
-    "tz2JPgTWZZpxZZLqHMfS69UAy1UHm4Aw5iHu";
-    "tz2CJBeWWLsUDjVUDqGZL6od3DeBCNzYXrXk";
-    "tz2KC42yW9FXFMJpkUooae2NFYQsM5do3E8H";
-    "tz2PPZ2WN4j92Rdx4NM7oW3HAp3x825HUyac";
-    "tz2WmivuMG8MMRKMEmzKRMMxMApxZQWYNS4W";
-    "tz3XeTwXXJeWNgVR3LqMcyBDdnxjbZ7TeEGH";
-    "tz3fLwHKthqhTPK6Lar6CTXN1WbDETw1YpGB";
-    "tz3eydffbLkjdVb8zx42BvxpGV87zaRnqL3r";
-    "tz3hCsUiQDfneTgD7CSZDaUro8SA5aEhwCp2";
-    "tz3Wazpbs4CFj78qv2KBJ8Z7HEyqk6ZPxwWZ";
-    "tz3XMQscBFM9vPmpbYMavMmwxRMUWvWGZMQQ";
-    "tz4AcerThk5nGtWNBiSqJfZFeWtz6ZqJ6mTY";
-    "tz4J1Kjhjc3QpMxTaLeQaJxWR7DVV8VK5gdq";
-    "tz4HQ7WgTRdgrxEdLWcGrgzYrHbz6a9ELZi3";
-    "tz4H6NGpYd76yxZ4aGbPNKtWMJEEfZFBch2W";
-    "tz4Mh4LFWMpACmKNWm1WNntMCPixsBWaMWMU";
-    "tz4DNQhMQaU9WMCVGwH6mQGGWqMNQHTjywDe";
+    "mv1XLPWJhfrKw1f3B6t2jQX6Dfx9ByyozxsF";
+    "mv1TDaNMGRLQVjg3gxC87UjeNtwoGa2dU5oR";
+    "mv19yfzhLjj4835QkqQuE3YMTBpmDoc8eTvt";
+    "mv1G8ih5tEZkhda5KdTdU1zhuGLutxcrxNym";
+    "mv1SW8YW5weH6oRJsodsvURDbtujqCDyxCQx";
+    "mv1V4qS6mW8EoX7N97Xt64QnGFcKYfoe7HBV";
+    "mv2hkYDKNk4omm5gt8QkYvxPJRNp5KNaVtUj";
+    "mv2W6kkDBDqVbhwVZmFhfHeKPoxmaPJz4fx7";
+    "mv2Q1FwD7zt1Ft68WErpuEymU28f1iJ3fFjt";
+    "mv2Wu8Kg7oG4HVuV2tQ59nCWgLuMAQofD4W7";
+    "mv2b6dKCyijg4aEcLmwPNeDRbcYRwMJiZUEm";
+    "mv2LGkP4fr2P53geKk8vTC8QRAfznST65WCc";
+    "mv3L1wF7qfwrwxGeBfQCrnsEnopi9wZxHuo1";
+    "mv3TiQavD5942f6KUuQwSHDPAXTBnrT1zEJp";
+    "mv3TM6yFui46CmNN9GcsRkeqRVz6YxvTQ6Me";
+    "mv3VaLnJiay9DjTSFX1QTQAsx9J8dxdV8mCc";
+    "mv3JxU8CBRVcJNv54Lt2XxF8SFqpJV3E4tA2";
+    "mv39WgoGerCtUqPGARA8P1W8UZ75Cw7hHVmC";
+    "mv4hjm3gjbPkMEeKYBCcos1eLGh3Wo5ozrau";
+    "mv4jrxYw7mJ7k1TTNEZPmdxfHqivjwA4sBuU";
+    "mv4U3da9Z6V5nzj5jSKJ5UuhnG31UXmsv4fG";
+    "mv4WuZLfgpR2CiRaPe4XUsX5z6Tp3Gc2sT3s";
+    "mv4hcU7TPaZg966KSHVCJNXgoSJAXdHhC93g";
+    "mv4Utg6Qe2qRhbykqcqEtx9ZeXtzvkjhUsmf";
   ]
 
 let gen_public_key_hash =
   let open QCheck2.Gen in
   let pick =
     let+ pkh = oneofl some_public_key_hash in
-    Tezos_crypto.Signature.Public_key_hash.of_b58check_exn pkh
+    Mavryk_crypto.Signature.Public_key_hash.of_b58check_exn pkh
   in
   let gen =
     let ed25519_tag = Bytes.of_string "\000" in
@@ -141,7 +141,7 @@ let gen_public_key_hash =
     let public_key_hash_size = 20 in
     let* tag = oneofl [ ed25519_tag; secp256k1_tag; p256_tag ] in
     gen_from_blake ~tag ~size:public_key_hash_size
-      Tezos_crypto.Signature.Public_key_hash.encoding
+      Mavryk_crypto.Signature.Public_key_hash.encoding
   in
   oneof [ pick; gen ]
 
@@ -188,12 +188,7 @@ let some_protocol_hash =
   [
     "ProtoDemoNoopsDemoNoopsDemoNoopsDemoNoopsDemo6XBoYp";
     "ProtoGenesisGenesisGenesisGenesisGenesisGenesk612im";
-    "PrihK96nBAFSxVL1GLJTVhu9YnzkMFiBeuJRPA8NwuZVZCE1L6i";
-    "PtKathmankSpLLDALzWw7CGD2j2MtyveTwboEYokqUCP4a1LxMg";
-    "PtLimaPtLMwfNinJi9rCfDPWea8dFgTZ1MeJ9f1m2SRic6ayiwW";
-    "PtMumbai2TmsJHNGRkD8v8YDbtao7BLUC3wjASn1inAKLFCjaH1";
-    "PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf";
-    "ProxfordYmVfjWnRcgjWH36fW6PArwqykTFzotUxRs6gmTcZDuH";
+    "PtAtLasomUEW99aVhVTrqjCHjJSpFUa8uHNEAEamx9v2SNeTaNp";
     "ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK";
     "ProtoALphaALphaALphaALphaALphaALphaALpha61322gcLUGH";
     "ProtoALphaALphaALphaALphaALphaALphaALphabc2a7ebx6WB";
@@ -201,7 +196,7 @@ let some_protocol_hash =
 
 let gen_protocol_hash =
   let open QCheck2.Gen in
-  let open Tezos_crypto.Hashed in
+  let open Mavryk_crypto.Hashed in
   let+ ph = oneofl some_protocol_hash in
   Protocol_hash.of_b58check_exn ph
 
@@ -506,7 +501,7 @@ let gen_packed_contents_list =
 
 let gen () =
   let shell =
-    { Tezos_base.Operation.branch = Tezos_crypto.Hashed.Block_hash.zero }
+    { Mavryk_base.Operation.branch = Mavryk_crypto.Hashed.Block_hash.zero }
   in
   let contents =
     QCheck2.Gen.generate1 ~rand:Gen_utils.random_state gen_packed_contents_list
@@ -514,7 +509,7 @@ let gen () =
   (shell, contents)
 
 let op = Seq.forever gen
-let watermark = Tezos_crypto.Signature.Generic_operation
+let watermark = Mavryk_crypto.Signature.Generic_operation
 
 let encode op =
   Data_encoding.Binary.to_bytes_exn

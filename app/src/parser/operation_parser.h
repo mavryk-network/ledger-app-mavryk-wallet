@@ -1,4 +1,4 @@
-/* Tezos Embedded C parser for Ledger - Operation parser
+/* Mavryk Embedded C parser for Ledger - Operation parser
 
    Copyright 2023 Nomadic Labs <contact@nomadic-labs.com>
 
@@ -18,15 +18,15 @@
 
 #include "parser_state.h"
 
-#define TZ_UNKNOWN_SIZE 0xFFFFu
+#define MV_UNKNOWN_SIZE 0xFFFFu
 
 /**
  * @brief Initialize a operations parser state
  *
  *        As operations can be very large, the size of the data to
  *        parse can be unknown in that case size can be set to
- *        `TZ_UNKNOWN_SIZE`. The size can then be set with
- *        `tz_operation_parser_set_size`
+ *        `MV_UNKNOWN_SIZE`. The size can then be set with
+ *        `mv_operation_parser_set_size`
  *
  * @param state: parser state
  * @param size: size of operations
@@ -36,7 +36,7 @@
  *                    operations. Otherwise, it will assume that the
  *                    bytes represent a batch of operations.
  */
-void tz_operation_parser_init(tz_parser_state *state, uint16_t size,
+void mv_operation_parser_init(mv_parser_state *state, uint16_t size,
                               bool skip_magic);
 
 /**
@@ -45,12 +45,12 @@ void tz_operation_parser_init(tz_parser_state *state, uint16_t size,
  * @param state: parser state
  * @param size: size of operations
  */
-void tz_operation_parser_set_size(tz_parser_state *state, uint16_t size);
+void mv_operation_parser_set_size(mv_parser_state *state, uint16_t size);
 
 /**
  * @brief Apply one step to the operations parser
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-tz_parser_result tz_operation_parser_step(tz_parser_state *state);
+mv_parser_result mv_operation_parser_step(mv_parser_state *state);

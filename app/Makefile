@@ -38,7 +38,7 @@ endif
 #        Mandatory configuration       #
 ########################################
 # Application name
-APPNAME = "Tezos Wallet"
+APPNAME = "Mavryk Wallet"
 
 # Application version
 APPVERSION_M=3
@@ -73,11 +73,11 @@ APP_SOURCE_PATH += src src/parser
 
 # Application icons following guidelines:
 # https://developers.ledger.com/docs/embedded-app/design-requirements/#device-icon
-ICON_NANOS = icons/nano-s-tezos.gif
-ICON_NANOX = icons/nano-x-tezos.gif
-ICON_NANOSP = icons/nano-x-tezos.gif
-ICON_STAX = icons/stax_tezos.gif
-ICON_FLEX = icons/flex_tezos.gif
+ICON_NANOS = icons/nano-s-mavryk.png
+ICON_NANOX = icons/nano-x-mavryk.png
+ICON_NANOSP = icons/nano-x-mavryk.png
+ICON_STAX = icons/stax_mavryk.png
+ICON_FLEX = icons/flex_mavryk.png
 
 # Application allowed derivation curves.
 # Possibles curves are: secp256k1, secp256r1, ed25519 and bls12381g1
@@ -92,7 +92,7 @@ CURVE_APP_LOAD_PARAMS = ed25519 secp256k1 secp256r1
 # and SLIP-0044 standards.
 # If your app needs it, you can specify multiple path by using:
 # `PATH_APP_LOAD_PARAMS = "44'/1'" "45'/1'"`
-PATH_APP_LOAD_PARAMS = "44'/1729'"
+PATH_APP_LOAD_PARAMS = "44'/1969'"
 
 # Setting to allow building variant applications
 # - <VARIANT_PARAM> is the name of the parameter which should be set
@@ -101,12 +101,12 @@ PATH_APP_LOAD_PARAMS = "44'/1729'"
 #   * It must at least contains one value.
 #   * Values can be the app ticker or anything else but should be unique.
 VARIANT_PARAM = APP_TYPE
-VARIANT_VALUES = tezos_wallet
+VARIANT_VALUES = mavryk_wallet
 
 # Enabling DEBUG flag will enable PRINTF and disable optimizations
 #DEBUG = 1
 ifneq ($(DEBUG), 0)
-  DEFINES += TEZOS_DEBUG
+  DEFINES += MAVRYK_DEBUG
 endif
 
 # CFLAGS
@@ -148,7 +148,7 @@ ENABLE_SWAP = 1
 # U2F - used e.g. by Kukai wallet
 SDK_SOURCE_PATH  += lib_u2f lib_stusb_impl
 DEFINES   += USB_SEGMENT_SIZE=64
-DEFINES   += U2F_PROXY_MAGIC=\"XTZ\"
+DEFINES   += U2F_PROXY_MAGIC=\"MVRK\"
 DEFINES   += HAVE_IO_U2F HAVE_U2F
 
 ########################################

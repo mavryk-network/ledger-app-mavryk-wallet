@@ -31,11 +31,11 @@ class TestBallot(TestOperation):
 
     fields = [
         Field("source", "Source", [
-            Field.Case('tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa', "tz1"),
-            Field.Case('tz2CJBeWWLsUDjVUDqGZL6od3DeBCNzYXrXk', "tz2"),
-            Field.Case('tz3fLwHKthqhTPK6Lar6CTXN1WbDETw1YpGB', "tz3"),
-            Field.Case('tz4AcerThk5nGtWNBiSqJfZFeWtz6ZqJ6mTY', "tz4"),
-            Field.Case('tz1Kp8NCAN5WWwvkWkMmQQXMRe68iURmoQ8w', "long-hash"),
+            Field.Case('mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb', "mv1"),
+            Field.Case('mv2gtGTc4STZHSs7jmDRSpEYNDVnaHpdxMDg', "mv2"),
+            Field.Case('mv3EkfVEWmznKKUhWzUApYJXonS2BxawQBKY', "mv3"),
+            Field.Case('mv4Rp1nbkBhZ2WHtgSVFG96CHTFfodV2dHcN', "mv4"),
+            Field.Case('mv1BffkEZbfk39B41da8eZCBBebKZPWugUDX', "long-hash"),
         ]),
         Field("period", "Period", [
             Field.Case(0, "0"),
@@ -44,8 +44,8 @@ class TestBallot(TestOperation):
             Field.Case(0x80000000, "min"),  # min int32
         ]),
         Field("proposal", "Proposal", [
-            Field.Case('PsParisCZo7KAh1Z1smVd9ZMZ1HHn5gkzbM94V3PLCpknFWhUAi', "basic"),
-            Field.Case('Ptd4kYMModZQ6Mh4ZRNMmWpM799PgSzjmGw3GM9Q2SDqqo8WCW8', "long-hash"),
+            Field.Case('PtBzwViMCC1gfm98y5TDKqz2e3vjBXPAUoWu7jfEcN6yj2ZhCyT', "basic"),
+            Field.Case('PtBzwViMCC1gfm98y5TDKqz2e3vjBXPAUoWu7jfEcN6yj2ZhCyT', "long-hash"), #Ptd4kYMModZQ6Mh4ZRNMmWpM799PgSzjmGw3GM9Q2SDqqo8WCW8
         ]),
         Field("ballot", "Ballot", [
             Field.Case('yay', "yay"),

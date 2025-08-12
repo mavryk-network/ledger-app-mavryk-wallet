@@ -13,8 +13,8 @@
    See the License for the specific language governing permissions and
    limitations under the License. *)
 
-open Tezos_protocol_018_Proxford
-open Tezos_micheline
+open Mavryk_protocol_001_PtAtLas
+open Mavryk_micheline
 open Test_c_parser_utils
 
 let rec pp_node ~wrap ppf (node : Protocol.Script_repr.node) =

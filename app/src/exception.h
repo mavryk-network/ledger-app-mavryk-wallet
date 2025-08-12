@@ -29,7 +29,7 @@
 // https://www.eftlab.com/knowledge-base/complete-list-of-apdu-responses
 // https://docs.zondax.ch/ledger-apps/starkware/APDU
 
-typedef uint16_t tz_exc;
+typedef uint16_t mv_exc;
 
 #define EXC_WRONG_PARAM               0x6B00u
 #define EXC_WRONG_LENGTH              0x6C00u
@@ -59,30 +59,30 @@ typedef uint16_t tz_exc;
  * can't return values, either, and do things the same way in both places.
  * Our mechanism is to set global.step == ST_ERROR after we get an error.
  *
- * Each function should begin with TZ_PREAMBLE() which takes a
+ * Each function should begin with MV_PREAMBLE() which takes a
  * bracketted list of PRINTF() arguments.  It also sets up all of
  * the variables necessary for the following macros.
  *
- * Each function should end with TZ_POSTAMBLE which: sets up all of
+ * Each function should end with MV_POSTAMBLE which: sets up all of
  * labels to which the remaining macros jump; responds on error via
  * io_send_sw(); and sets global.step on error.
  *
- * TZ_CHECK() calls a function.  If global.step == ST_ERROR, it will
- * jump to the end after calling the function and let TZ_POSTAMBLE do
+ * MV_CHECK() calls a function.  If global.step == ST_ERROR, it will
+ * jump to the end after calling the function and let MV_POSTAMBLE do
  * its thing.
  *
- * TZ_FAIL(sw_code) will set vars and jump into the postamble which
+ * MV_FAIL(sw_code) will set vars and jump into the postamble which
  * will reply using io_send_sw(sw_code) and set global.step = ST_ERROR.
  *
- * TZ_ASSERT(sw_code, condition) will TZ_FAIL(sw_code) if the condition
+ * MV_ASSERT(sw_code, condition) will MV_FAIL(sw_code) if the condition
  * is not true.
  *
  * CX_CHECK() is a macro provided by BOLOS, however, we catch it
- * with this framework, reply with io_send_sw() and return TZ_DONE.
+ * with this framework, reply with io_send_sw() and return MV_DONE.
  */
 
-#define TZ_PREAMBLE(_args)           \
-    tz_exc   _sw_ret_code = 0x0000u; \
+#define MV_PREAMBLE(_args)           \
+    mv_exc   _sw_ret_code = 0x0000u; \
     cx_err_t error        = CX_OK;   \
     if (error != CX_OK) {            \
         goto bail;                   \
@@ -92,7 +92,7 @@ typedef uint16_t tz_exc;
     }                                \
     FUNC_ENTER(_args)
 
-#define TZ_POSTAMBLE                                  \
+#define MV_POSTAMBLE                                  \
     end:                                              \
     if (error != CX_OK) {                             \
         _sw_ret_code = EXC_UNKNOWN_CX_ERR;            \
@@ -105,7 +105,7 @@ typedef uint16_t tz_exc;
     }                                                 \
     FUNC_LEAVE();
 
-#define TZ_LIB_POSTAMBLE                              \
+#define MV_LIB_POSTAMBLE                              \
     end:                                              \
     if (error != CX_OK) {                             \
         _sw_ret_code = EXC_UNKNOWN_CX_ERR;            \
@@ -115,44 +115,44 @@ typedef uint16_t tz_exc;
     FUNC_LEAVE();                                     \
     return _sw_ret_code
 
-#define TZ_FAIL(_sw_code)        \
+#define MV_FAIL(_sw_code)        \
     do {                         \
         _sw_ret_code = _sw_code; \
         goto bail;               \
     } while (0)
 
-#define TZ_SUCCEED() \
+#define MV_SUCCEED() \
     do {             \
         goto bail;   \
     } while (0)
 
-#define TZ_ASSERT(_err, _cond)                                             \
+#define MV_ASSERT(_err, _cond)                                             \
     do {                                                                   \
         if (!(_cond)) {                                                    \
             PRINTF("Assertion (\"%s\") on %s:%u failed with %s\n", #_cond, \
                    __FILE__, __LINE__, #_err);                             \
-            TZ_FAIL(_err);                                                 \
+            MV_FAIL(_err);                                                 \
         }                                                                  \
     } while (0)
 
-#define TZ_CHECK(_call)                                             \
+#define MV_CHECK(_call)                                             \
     do {                                                            \
         (_call);                                                    \
         if (global.step == ST_ERROR) {                              \
-            PRINTF("TZ_CHECK(\"%s\") on %s:%u\n", #_call, __FILE__, \
+            PRINTF("MV_CHECK(\"%s\") on %s:%u\n", #_call, __FILE__, \
                    __LINE__);                                       \
             goto bail;                                              \
         }                                                           \
     } while (0)
 
-#define TZ_LIB_CHECK(_call)                                             \
+#define MV_LIB_CHECK(_call)                                             \
     do {                                                                \
         _sw_ret_code = (_call);                                         \
         if (_sw_ret_code) {                                             \
-            PRINTF("TZ_LIB_CHECK(\"%s\") on %s:%u\n", #_call, __FILE__, \
+            PRINTF("MV_LIB_CHECK(\"%s\") on %s:%u\n", #_call, __FILE__, \
                    __LINE__);                                           \
             goto bail;                                                  \
         }                                                               \
     } while (0)
 
-#define TZ_ASSERT_NOTNULL(_x) TZ_ASSERT(EXC_MEMORY_ERROR, (_x) != NULL)
+#define MV_ASSERT_NOTNULL(_x) MV_ASSERT(EXC_MEMORY_ERROR, (_x) != NULL)

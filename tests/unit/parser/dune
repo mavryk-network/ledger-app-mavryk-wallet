@@ -5,7 +5,7 @@
   test_micheline_c_parser
   test_operations_c_parser
   test_c_parser)
- (libraries tezos-protocol-018-Proxford.protocol terminal_size)
+ (libraries mavryk-protocol-001-PtAtLas.protocol terminal_size)
  (foreign_stubs
   (language c)
   (names

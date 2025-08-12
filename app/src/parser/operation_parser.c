@@ -1,4 +1,4 @@
-/* Tezos Embedded C parser for Ledger - Operation parser
+/* Mavryk Embedded C parser for Ledger - Operation parser
 
    Copyright 2023 Nomadic Labs <contact@nomadic-labs.com>
    Copyright 2023 Functori <contact@functori.com>
@@ -24,12 +24,12 @@
 
 /* Prototypes */
 
-static tz_parser_result push_frame(tz_parser_state              *state,
-                                   tz_operation_parser_step_kind step);
-static tz_parser_result pop_frame(tz_parser_state *state);
+static mv_parser_result push_frame(mv_parser_state              *state,
+                                   mv_operation_parser_step_kind step);
+static mv_parser_result pop_frame(mv_parser_state *state);
 
-#ifdef TEZOS_DEBUG
-const char *const tz_operation_parser_step_name[] = {"OPTION",
+#ifdef MAVRYK_DEBUG
+const char *const mv_operation_parser_step_name[] = {"OPTION",
                                                      "TUPLE",
                                                      "MAGIC",
                                                      "READ_BINARY",
@@ -58,7 +58,7 @@ const char *const tz_operation_parser_step_name[] = {"OPTION",
  *
  */
 #define STRING_STEP(step) \
-    (const char *)PIC(tz_operation_parser_step_name[step])
+    (const char *)PIC(mv_operation_parser_step_name[step])
 
 #endif
 
@@ -74,10 +74,10 @@ const char *const tz_operation_parser_step_name[] = {"OPTION",
  *
  *        By default .skip=false, .complex=false
  */
-#define TZ_OPERATION_FIELD(name_v, kind_v, ...) \
+#define MV_OPERATION_FIELD(name_v, kind_v, ...) \
   {.name=name_v, .kind=kind_v, __VA_ARGS__}
 
-#define TZ_OPERATION_LAST_FIELD {0} /// Empty field with an END step
+#define MV_OPERATION_LAST_FIELD {0} /// Empty field with an END step
 
 /**
  * @brief Helper to create an operation option field descriptor
@@ -88,10 +88,10 @@ const char *const tz_operation_parser_step_name[] = {"OPTION",
  *
  *        By default .skip=false, .complex=false
  */
-#define TZ_OPERATION_OPTION_FIELD(name_v, field_v, display_none, ...) \
-  {.name=name_v, .kind=TZ_OPERATION_FIELD_OPTION,                     \
+#define MV_OPERATION_OPTION_FIELD(name_v, field_v, display_none, ...) \
+  {.name=name_v, .kind=MV_OPERATION_FIELD_OPTION,                     \
    .field_option={                                                    \
-       .field=&(const tz_operation_field_descriptor)field_v,          \
+       .field=&(const mv_operation_field_descriptor)field_v,          \
        display_none                                                   \
    },                                                                 \
    __VA_ARGS__}
@@ -102,12 +102,12 @@ const char *const tz_operation_parser_step_name[] = {"OPTION",
  * @required name: name of the tuple field
  * @required fields: fields of the tuple field
  */
-#define TZ_OPERATION_TUPLE_FIELD(name_v, ...)           \
-  {.name=name_v, .kind=TZ_OPERATION_FIELD_TUPLE,        \
+#define MV_OPERATION_TUPLE_FIELD(name_v, ...)           \
+  {.name=name_v, .kind=MV_OPERATION_FIELD_TUPLE,        \
    .field_tuple={                                       \
-       .fields=(const tz_operation_field_descriptor[]){ \
+       .fields=(const mv_operation_field_descriptor[]){ \
            __VA_ARGS__,                                 \
-           TZ_OPERATION_LAST_FIELD                      \
+           MV_OPERATION_LAST_FIELD                      \
        }                                                \
    }                                                    \
   }
@@ -118,143 +118,143 @@ const char *const tz_operation_parser_step_name[] = {"OPTION",
  * @required name: name of the operation
  * @required fields: fields of the operation
  */
-#define TZ_OPERATION_FIELDS(name, ...) \
-  const tz_operation_field_descriptor name[] = { __VA_ARGS__, TZ_OPERATION_LAST_FIELD}
+#define MV_OPERATION_FIELDS(name, ...) \
+  const mv_operation_field_descriptor name[] = { __VA_ARGS__, MV_OPERATION_LAST_FIELD}
 
-TZ_OPERATION_FIELDS(proposals_fields,
-    TZ_OPERATION_FIELD("Source",   TZ_OPERATION_FIELD_PKH),
-    TZ_OPERATION_FIELD("Period",   TZ_OPERATION_FIELD_INT32),
-    TZ_OPERATION_FIELD("Proposal", TZ_OPERATION_FIELD_PROTOS)
+MV_OPERATION_FIELDS(proposals_fields,
+    MV_OPERATION_FIELD("Source",   MV_OPERATION_FIELD_PKH),
+    MV_OPERATION_FIELD("Period",   MV_OPERATION_FIELD_INT32),
+    MV_OPERATION_FIELD("Proposal", MV_OPERATION_FIELD_PROTOS)
 );
 
-TZ_OPERATION_FIELDS(ballot_fields,
-    TZ_OPERATION_FIELD("Source",   TZ_OPERATION_FIELD_PKH),
-    TZ_OPERATION_FIELD("Period",   TZ_OPERATION_FIELD_INT32),
-    TZ_OPERATION_FIELD("Proposal", TZ_OPERATION_FIELD_PROTO),
-    TZ_OPERATION_FIELD("Ballot",   TZ_OPERATION_FIELD_BALLOT)
+MV_OPERATION_FIELDS(ballot_fields,
+    MV_OPERATION_FIELD("Source",   MV_OPERATION_FIELD_PKH),
+    MV_OPERATION_FIELD("Period",   MV_OPERATION_FIELD_INT32),
+    MV_OPERATION_FIELD("Proposal", MV_OPERATION_FIELD_PROTO),
+    MV_OPERATION_FIELD("Ballot",   MV_OPERATION_FIELD_BALLOT)
 );
 
-TZ_OPERATION_FIELDS(failing_noop_fields,
-    TZ_OPERATION_FIELD("Message", TZ_OPERATION_FIELD_BINARY)
+MV_OPERATION_FIELDS(failing_noop_fields,
+    MV_OPERATION_FIELD("Message", MV_OPERATION_FIELD_BINARY)
 );
 
 /**
  * @brief Set of fields for manager operations
  */
-#define TZ_OPERATION_MANAGER_OPERATION_FIELDS                                \
-    TZ_OPERATION_FIELD("Source",        TZ_OPERATION_FIELD_SOURCE),          \
-    TZ_OPERATION_FIELD("Fee",           TZ_OPERATION_FIELD_FEE),             \
-    TZ_OPERATION_FIELD("_Counter",      TZ_OPERATION_FIELD_NAT, .skip=true), \
-    TZ_OPERATION_FIELD("_Gas",          TZ_OPERATION_FIELD_NAT, .skip=true), \
-    TZ_OPERATION_FIELD("Storage limit", TZ_OPERATION_FIELD_NAT)
+#define MV_OPERATION_MANAGER_OPERATION_FIELDS                                \
+    MV_OPERATION_FIELD("Source",        MV_OPERATION_FIELD_SOURCE),          \
+    MV_OPERATION_FIELD("Fee",           MV_OPERATION_FIELD_FEE),             \
+    MV_OPERATION_FIELD("_Counter",      MV_OPERATION_FIELD_NAT, .skip=true), \
+    MV_OPERATION_FIELD("_Gas",          MV_OPERATION_FIELD_NAT, .skip=true), \
+    MV_OPERATION_FIELD("Storage limit", MV_OPERATION_FIELD_NAT)
 
-TZ_OPERATION_FIELDS(transaction_fields,
-    TZ_OPERATION_MANAGER_OPERATION_FIELDS,
-    TZ_OPERATION_FIELD("Amount",      TZ_OPERATION_FIELD_AMOUNT),
-    TZ_OPERATION_FIELD("Destination", TZ_OPERATION_FIELD_DESTINATION),
-    TZ_OPERATION_OPTION_FIELD("_Parameters",
-        TZ_OPERATION_TUPLE_FIELD("_Parameters",
-            TZ_OPERATION_FIELD("Entrypoint", TZ_OPERATION_FIELD_SMART_ENTRYPOINT),
-            TZ_OPERATION_FIELD("Parameter",  TZ_OPERATION_FIELD_EXPR, .complex=true)),
+MV_OPERATION_FIELDS(transaction_fields,
+    MV_OPERATION_MANAGER_OPERATION_FIELDS,
+    MV_OPERATION_FIELD("Amount",      MV_OPERATION_FIELD_AMOUNT),
+    MV_OPERATION_FIELD("Destination", MV_OPERATION_FIELD_DESTINATION),
+    MV_OPERATION_OPTION_FIELD("_Parameters",
+        MV_OPERATION_TUPLE_FIELD("_Parameters",
+            MV_OPERATION_FIELD("Entrypoint", MV_OPERATION_FIELD_SMART_ENTRYPOINT),
+            MV_OPERATION_FIELD("Parameter",  MV_OPERATION_FIELD_EXPR, .complex=true)),
         .display_none=false)
 );
 
-TZ_OPERATION_FIELDS(reveal_fields,
-    TZ_OPERATION_MANAGER_OPERATION_FIELDS,
-    TZ_OPERATION_FIELD("Public key", TZ_OPERATION_FIELD_PK)
+MV_OPERATION_FIELDS(reveal_fields,
+    MV_OPERATION_MANAGER_OPERATION_FIELDS,
+    MV_OPERATION_FIELD("Public key", MV_OPERATION_FIELD_PK)
 );
 
-TZ_OPERATION_FIELDS(delegation_fields,
-    TZ_OPERATION_MANAGER_OPERATION_FIELDS,
-    TZ_OPERATION_OPTION_FIELD("Delegate",
-        TZ_OPERATION_FIELD("Delegate", TZ_OPERATION_FIELD_PKH),
+MV_OPERATION_FIELDS(delegation_fields,
+    MV_OPERATION_MANAGER_OPERATION_FIELDS,
+    MV_OPERATION_OPTION_FIELD("Delegate",
+        MV_OPERATION_FIELD("Delegate", MV_OPERATION_FIELD_PKH),
         .display_none=true)
 );
 
-TZ_OPERATION_FIELDS(reg_glb_cst_fields,
-    TZ_OPERATION_MANAGER_OPERATION_FIELDS,
-    TZ_OPERATION_FIELD("Value", TZ_OPERATION_FIELD_EXPR, .complex=true)
+MV_OPERATION_FIELDS(reg_glb_cst_fields,
+    MV_OPERATION_MANAGER_OPERATION_FIELDS,
+    MV_OPERATION_FIELD("Value", MV_OPERATION_FIELD_EXPR, .complex=true)
 );
 
-TZ_OPERATION_FIELDS(set_deposit_fields,
-    TZ_OPERATION_MANAGER_OPERATION_FIELDS,
-    TZ_OPERATION_OPTION_FIELD("Staking limit",
-        TZ_OPERATION_FIELD("Staking limit", TZ_OPERATION_FIELD_AMOUNT),
+MV_OPERATION_FIELDS(set_deposit_fields,
+    MV_OPERATION_MANAGER_OPERATION_FIELDS,
+    MV_OPERATION_OPTION_FIELD("Staking limit",
+        MV_OPERATION_FIELD("Staking limit", MV_OPERATION_FIELD_AMOUNT),
         .display_none=true)
 );
 
-TZ_OPERATION_FIELDS(inc_paid_stg_fields,
-    TZ_OPERATION_MANAGER_OPERATION_FIELDS,
-    TZ_OPERATION_FIELD("Amount",      TZ_OPERATION_FIELD_INT),
-    TZ_OPERATION_FIELD("Destination", TZ_OPERATION_FIELD_DESTINATION)
+MV_OPERATION_FIELDS(inc_paid_stg_fields,
+    MV_OPERATION_MANAGER_OPERATION_FIELDS,
+    MV_OPERATION_FIELD("Amount",      MV_OPERATION_FIELD_INT),
+    MV_OPERATION_FIELD("Destination", MV_OPERATION_FIELD_DESTINATION)
 );
 
-TZ_OPERATION_FIELDS(update_ck_fields,
-    TZ_OPERATION_MANAGER_OPERATION_FIELDS,
-    TZ_OPERATION_FIELD("Public key", TZ_OPERATION_FIELD_PK)
+MV_OPERATION_FIELDS(update_ck_fields,
+    MV_OPERATION_MANAGER_OPERATION_FIELDS,
+    MV_OPERATION_FIELD("Public key", MV_OPERATION_FIELD_PK)
 );
 
-TZ_OPERATION_FIELDS(origination_fields,
-    TZ_OPERATION_MANAGER_OPERATION_FIELDS,
-    TZ_OPERATION_FIELD("Balance", TZ_OPERATION_FIELD_AMOUNT),
-    TZ_OPERATION_OPTION_FIELD("Delegate",
-        TZ_OPERATION_FIELD("Delegate", TZ_OPERATION_FIELD_PKH),
+MV_OPERATION_FIELDS(origination_fields,
+    MV_OPERATION_MANAGER_OPERATION_FIELDS,
+    MV_OPERATION_FIELD("Balance", MV_OPERATION_FIELD_AMOUNT),
+    MV_OPERATION_OPTION_FIELD("Delegate",
+        MV_OPERATION_FIELD("Delegate", MV_OPERATION_FIELD_PKH),
         .display_none=true),
-    TZ_OPERATION_FIELD("Code",    TZ_OPERATION_FIELD_EXPR, .complex=true),
-    TZ_OPERATION_FIELD("Storage", TZ_OPERATION_FIELD_EXPR, .complex=true)
+    MV_OPERATION_FIELD("Code",    MV_OPERATION_FIELD_EXPR, .complex=true),
+    MV_OPERATION_FIELD("Storage", MV_OPERATION_FIELD_EXPR, .complex=true)
 );
 
-TZ_OPERATION_FIELDS(transfer_tck_fields,
-    TZ_OPERATION_MANAGER_OPERATION_FIELDS,
-    TZ_OPERATION_FIELD("Contents",    TZ_OPERATION_FIELD_EXPR, .complex=true),
-    TZ_OPERATION_FIELD("Type",        TZ_OPERATION_FIELD_EXPR, .complex=true),
-    TZ_OPERATION_FIELD("Ticketer",    TZ_OPERATION_FIELD_DESTINATION),
-    TZ_OPERATION_FIELD("Amount",      TZ_OPERATION_FIELD_NAT),
-    TZ_OPERATION_FIELD("Destination", TZ_OPERATION_FIELD_DESTINATION),
-    TZ_OPERATION_FIELD("Entrypoint",  TZ_OPERATION_FIELD_STRING)
+MV_OPERATION_FIELDS(transfer_tck_fields,
+    MV_OPERATION_MANAGER_OPERATION_FIELDS,
+    MV_OPERATION_FIELD("Contents",    MV_OPERATION_FIELD_EXPR, .complex=true),
+    MV_OPERATION_FIELD("Type",        MV_OPERATION_FIELD_EXPR, .complex=true),
+    MV_OPERATION_FIELD("Ticketer",    MV_OPERATION_FIELD_DESTINATION),
+    MV_OPERATION_FIELD("Amount",      MV_OPERATION_FIELD_NAT),
+    MV_OPERATION_FIELD("Destination", MV_OPERATION_FIELD_DESTINATION),
+    MV_OPERATION_FIELD("Entrypoint",  MV_OPERATION_FIELD_STRING)
 );
 
-TZ_OPERATION_FIELDS(soru_add_msg_fields,
-    TZ_OPERATION_MANAGER_OPERATION_FIELDS,
-    TZ_OPERATION_FIELD("Message", TZ_OPERATION_FIELD_SORU_MESSAGES)
+MV_OPERATION_FIELDS(soru_add_msg_fields,
+    MV_OPERATION_MANAGER_OPERATION_FIELDS,
+    MV_OPERATION_FIELD("Message", MV_OPERATION_FIELD_SORU_MESSAGES)
 );
 
-TZ_OPERATION_FIELDS(soru_exe_msg_fields,
-    TZ_OPERATION_MANAGER_OPERATION_FIELDS,
-    TZ_OPERATION_FIELD("Rollup",       TZ_OPERATION_FIELD_SR),
-    TZ_OPERATION_FIELD("Commitment",   TZ_OPERATION_FIELD_SRC),
-    TZ_OPERATION_FIELD("Output proof", TZ_OPERATION_FIELD_BINARY, .complex=true)
+MV_OPERATION_FIELDS(soru_exe_msg_fields,
+    MV_OPERATION_MANAGER_OPERATION_FIELDS,
+    MV_OPERATION_FIELD("Rollup",       MV_OPERATION_FIELD_SR),
+    MV_OPERATION_FIELD("Commitment",   MV_OPERATION_FIELD_SRC),
+    MV_OPERATION_FIELD("Output proof", MV_OPERATION_FIELD_BINARY, .complex=true)
 );
 
-TZ_OPERATION_FIELDS(soru_origin_fields,
-    TZ_OPERATION_MANAGER_OPERATION_FIELDS,
-    TZ_OPERATION_FIELD("Kind",       TZ_OPERATION_FIELD_SORU_KIND),
-    TZ_OPERATION_FIELD("Kernel",     TZ_OPERATION_FIELD_BINARY, .complex=true),
-    TZ_OPERATION_FIELD("Parameters", TZ_OPERATION_FIELD_EXPR,   .complex=true),
-    TZ_OPERATION_OPTION_FIELD("Whitelist",
-        TZ_OPERATION_FIELD("Whitelist",  TZ_OPERATION_FIELD_PKH_LIST),
+MV_OPERATION_FIELDS(soru_origin_fields,
+    MV_OPERATION_MANAGER_OPERATION_FIELDS,
+    MV_OPERATION_FIELD("Kind",       MV_OPERATION_FIELD_SORU_KIND),
+    MV_OPERATION_FIELD("Kernel",     MV_OPERATION_FIELD_BINARY, .complex=true),
+    MV_OPERATION_FIELD("Parameters", MV_OPERATION_FIELD_EXPR,   .complex=true),
+    MV_OPERATION_OPTION_FIELD("Whitelist",
+        MV_OPERATION_FIELD("Whitelist",  MV_OPERATION_FIELD_PKH_LIST),
         .display_none=false)
 );
 
 /**
  * @brief Array of all handled operations
  */
-const tz_operation_descriptor tz_operation_descriptors[] = {
-    {TZ_OPERATION_TAG_PROPOSALS,    "Proposals",                  proposals_fields   },
-    {TZ_OPERATION_TAG_BALLOT,       "Ballot",                     ballot_fields      },
-    {TZ_OPERATION_TAG_FAILING_NOOP, "Failing noop",               failing_noop_fields},
-    {TZ_OPERATION_TAG_REVEAL,       "Reveal",                     reveal_fields      },
-    {TZ_OPERATION_TAG_TRANSACTION,  "Transaction",                transaction_fields },
-    {TZ_OPERATION_TAG_ORIGINATION,  "Origination",                origination_fields },
-    {TZ_OPERATION_TAG_DELEGATION,   "Delegation",                 delegation_fields  },
-    {TZ_OPERATION_TAG_REG_GLB_CST,  "Register global constant",   reg_glb_cst_fields },
-    {TZ_OPERATION_TAG_SET_DEPOSIT,  "Set deposit limit",          set_deposit_fields },
-    {TZ_OPERATION_TAG_INC_PAID_STG, "Increase paid storage",      inc_paid_stg_fields},
-    {TZ_OPERATION_TAG_UPDATE_CK,    "Set consensus key",          update_ck_fields   },
-    {TZ_OPERATION_TAG_TRANSFER_TCK, "Transfer ticket",            transfer_tck_fields},
-    {TZ_OPERATION_TAG_SORU_ADD_MSG, "SR: send messages",          soru_add_msg_fields},
-    {TZ_OPERATION_TAG_SORU_EXE_MSG, "SR: execute outbox message", soru_exe_msg_fields},
-    {TZ_OPERATION_TAG_SORU_ORIGIN,  "SR: originate",              soru_origin_fields },
+const mv_operation_descriptor mv_operation_descriptors[] = {
+    {MV_OPERATION_TAG_PROPOSALS,    "Proposals",                  proposals_fields   },
+    {MV_OPERATION_TAG_BALLOT,       "Ballot",                     ballot_fields      },
+    {MV_OPERATION_TAG_FAILING_NOOP, "Failing noop",               failing_noop_fields},
+    {MV_OPERATION_TAG_REVEAL,       "Reveal",                     reveal_fields      },
+    {MV_OPERATION_TAG_TRANSACTION,  "Transaction",                transaction_fields },
+    {MV_OPERATION_TAG_ORIGINATION,  "Origination",                origination_fields },
+    {MV_OPERATION_TAG_DELEGATION,   "Delegation",                 delegation_fields  },
+    {MV_OPERATION_TAG_REG_GLB_CST,  "Register global constant",   reg_glb_cst_fields },
+    {MV_OPERATION_TAG_SET_DEPOSIT,  "Set deposit limit",          set_deposit_fields },
+    {MV_OPERATION_TAG_INC_PAID_STG, "Increase paid storage",      inc_paid_stg_fields},
+    {MV_OPERATION_TAG_UPDATE_CK,    "Set consensus key",          update_ck_fields   },
+    {MV_OPERATION_TAG_TRANSFER_TCK, "Transfer ticket",            transfer_tck_fields},
+    {MV_OPERATION_TAG_SORU_ADD_MSG, "SR: send messages",          soru_add_msg_fields},
+    {MV_OPERATION_TAG_SORU_EXE_MSG, "SR: execute outbox message", soru_exe_msg_fields},
+    {MV_OPERATION_TAG_SORU_ORIGIN,  "SR: originate",              soru_origin_fields },
     {0,                             NULL,                         0                  }
 };
 // clang-format on
@@ -267,59 +267,59 @@ static const char *unset_message   = "Field unset";  /// title for unset field
  *
  * @param state: parser state
  * @param step: step of the new frame
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-push_frame(tz_parser_state *state, tz_operation_parser_step_kind step)
+static mv_parser_result
+push_frame(mv_parser_state *state, mv_operation_parser_step_kind step)
 {
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
 
-    if (op->frame >= &op->stack[TZ_OPERATION_STACK_DEPTH - 1]) {
-        tz_raise(TOO_DEEP);
+    if (op->frame >= &op->stack[MV_OPERATION_STACK_DEPTH - 1]) {
+        mv_raise(TOO_DEEP);
     }
     op->frame++;
     op->frame->step = step;
-    tz_continue;
+    mv_continue;
 }
 
 /**
  * @brief Pop the operations parser stack
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-pop_frame(tz_parser_state *state)
+static mv_parser_result
+pop_frame(mv_parser_state *state)
 {
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
 
     if (op->frame == op->stack) {
         op->frame = NULL;
-        tz_stop(DONE);
+        mv_stop(DONE);
     }
     op->frame--;
-    tz_continue;
+    mv_continue;
 }
 
 void
-tz_operation_parser_set_size(tz_parser_state *state, uint16_t size)
+mv_operation_parser_set_size(mv_parser_state *state, uint16_t size)
 {
     state->operation.stack[0].stop = size;
 }
 
 void
-tz_operation_parser_init(tz_parser_state *state, uint16_t size,
+mv_operation_parser_init(mv_parser_state *state, uint16_t size,
                          bool skip_magic)
 {
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
 
-    tz_parser_init(state);
+    mv_parser_init(state);
     state->operation.seen_reveal = 0;
     memset(&state->operation.source, 0, 22);
     memset(&state->operation.destination, 0, 22);
     op->batch_index = 0;
 #ifdef HAVE_SWAP
-    op->last_tag  = TZ_OPERATION_TAG_END;
+    op->last_tag  = MV_OPERATION_TAG_END;
     op->nb_reveal = 0;
 #endif  // HAVE_SWAP
     op->total_fee     = 0;
@@ -327,13 +327,13 @@ tz_operation_parser_init(tz_parser_state *state, uint16_t size,
     op->frame         = op->stack;
     op->stack[0].stop = size;
     if (!skip_magic) {
-        op->stack[0].step = TZ_OPERATION_STEP_MAGIC;
+        op->stack[0].step = MV_OPERATION_STEP_MAGIC;
     } else {
         STRLCPY(state->field_info.field_name, "Branch");
-        op->stack[0].step = TZ_OPERATION_STEP_BRANCH;
-        push_frame(state, TZ_OPERATION_STEP_READ_BYTES);  // ignore result,
+        op->stack[0].step = MV_OPERATION_STEP_BRANCH;
+        push_frame(state, MV_OPERATION_STEP_READ_BYTES);  // ignore result,
                                                           // assume success
-        op->frame->step_read_bytes.kind = TZ_OPERATION_FIELD_BH;
+        op->frame->step_read_bytes.kind = MV_OPERATION_FIELD_BH;
         op->frame->step_read_bytes.skip = true;
         op->frame->step_read_bytes.ofs  = 0;
         op->frame->step_read_bytes.len  = 32;
@@ -355,20 +355,20 @@ tz_operation_parser_init(tz_parser_state *state, uint16_t size,
  * @brief Ask to print what has been captured
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_print_string(tz_parser_state *state)
+static mv_parser_result
+mv_print_string(mv_parser_state *state)
 {
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
 
     if (op->frame->step_read_string.skip) {
-        tz_must(pop_frame(state));
-        tz_continue;
+        mv_must(pop_frame(state));
+        mv_continue;
     }
-    op->frame->step           = TZ_OPERATION_STEP_PRINT;
+    op->frame->step           = MV_OPERATION_STEP_PRINT;
     op->frame->step_print.str = (char *)CAPTURE;
-    tz_continue;
+    mv_continue;
 }
 
 /**
@@ -376,12 +376,12 @@ tz_print_string(tz_parser_state *state)
  */
 #define ASSERT_STEP(state, expected_step)                                    \
     do {                                                                     \
-        tz_operation_parser_step_kind step = (state)->operation.frame->step; \
-        if (step != TZ_OPERATION_STEP_##expected_step) {                     \
+        mv_operation_parser_step_kind step = (state)->operation.frame->step; \
+        if (step != MV_OPERATION_STEP_##expected_step) {                     \
             PRINTF("[DEBUG] expected step %s but got step %s)\n",            \
-                   STRING_STEP(TZ_OPERATION_STEP_##expected_step),           \
+                   STRING_STEP(MV_OPERATION_STEP_##expected_step),           \
                    STRING_STEP(step));                                       \
-            tz_raise(INVALID_STATE);                                         \
+            mv_raise(INVALID_STATE);                                         \
         }                                                                    \
     } while (0)
 
@@ -391,62 +391,62 @@ tz_print_string(tz_parser_state *state)
  *        If the field is present, ask to read it.
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_option(tz_parser_state *state)
+static mv_parser_result
+mv_step_option(mv_parser_state *state)
 {
     ASSERT_STEP(state, OPTION);
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
     uint8_t             present;
-    tz_must(tz_parser_read(state, &present));
+    mv_must(mv_parser_read(state, &present));
     if (!present) {
         if (op->frame->step_option.display_none) {
             if (op->frame->step_option.field->skip) {
-                tz_raise(INVALID_STATE);
+                mv_raise(INVALID_STATE);
             }
-            op->frame->step           = TZ_OPERATION_STEP_PRINT;
+            op->frame->step           = MV_OPERATION_STEP_PRINT;
             op->frame->step_print.str = (char *)unset_message;
         } else {
-            tz_must(pop_frame(state));
+            mv_must(pop_frame(state));
         }
     } else {
-        op->frame->step             = TZ_OPERATION_STEP_FIELD;
+        op->frame->step             = MV_OPERATION_STEP_FIELD;
         op->frame->step_field.field = op->frame->step_option.field;
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
  * @brief Ask to read remaining fields of a tuple field
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_tuple(tz_parser_state *state)
+static mv_parser_result
+mv_step_tuple(mv_parser_state *state)
 {
     ASSERT_STEP(state, TUPLE);
-    tz_operation_state                  *op    = &state->operation;
-    tz_parser_regs                      *regs  = &state->regs;
-    const tz_operation_field_descriptor *field = PIC(
+    mv_operation_state                  *op    = &state->operation;
+    mv_parser_regs                      *regs  = &state->regs;
+    const mv_operation_field_descriptor *field = PIC(
         &op->frame->step_tuple.fields[op->frame->step_tuple.field_index]);
 
     // Remaining content from previous section - display this first.
     if (regs->oofs > 0) {
-        tz_stop(IM_FULL);
+        mv_stop(IM_FULL);
     }
 
-    if (field->kind == TZ_OPERATION_FIELD_END) {
+    if (field->kind == MV_OPERATION_FIELD_END) {
         // is_field_complex is reset after reaching the last field
         state->field_info.is_field_complex = false;
-        tz_must(pop_frame(state));
+        mv_must(pop_frame(state));
     } else {
         op->frame->step_tuple.field_index++;
-        tz_must(push_frame(state, TZ_OPERATION_STEP_FIELD));
+        mv_must(push_frame(state, MV_OPERATION_STEP_FIELD));
         op->frame->step_field.field = field;
     }
-    tz_continue;
+    mv_continue;
 }
 
 /* Update the state in order to read an operation or a micheline expression
@@ -458,63 +458,63 @@ tz_step_tuple(tz_parser_state *state)
  *        expression or a batch of operations
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_magic(tz_parser_state *state)
+static mv_parser_result
+mv_step_magic(mv_parser_state *state)
 {
     ASSERT_STEP(state, MAGIC);
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
     uint8_t             b;
-    tz_must(tz_parser_read(state, &b));
+    mv_must(mv_parser_read(state, &b));
     switch (b) {
     case 3:  // manager/anonymous operation
         STRLCPY(state->field_info.field_name, "Branch");
-        op->stack[0].step = TZ_OPERATION_STEP_BRANCH;
+        op->stack[0].step = MV_OPERATION_STEP_BRANCH;
         push_frame(state,
-                   TZ_OPERATION_STEP_READ_BYTES);  // ignore result,
+                   MV_OPERATION_STEP_READ_BYTES);  // ignore result,
                                                    //  assume success
-        op->frame->step_read_bytes.kind = TZ_OPERATION_FIELD_BH;
+        op->frame->step_read_bytes.kind = MV_OPERATION_FIELD_BH;
         op->frame->step_read_bytes.skip = true;
         op->frame->step_read_bytes.ofs  = 0;
         op->frame->step_read_bytes.len  = 32;
         break;
     case 5:  // micheline expression
-        op->frame->step = TZ_OPERATION_STEP_READ_MICHELINE;
+        op->frame->step = MV_OPERATION_STEP_READ_MICHELINE;
         op->frame->step_read_micheline.inited = 0;
         op->frame->step_read_micheline.skip   = false;
         op->frame->step_read_micheline.name   = (char *)PIC(expression_name);
         op->frame->stop                       = 0;
         break;
     default:
-        tz_raise(INVALID_TAG);
+        mv_raise(INVALID_TAG);
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
  * @brief Read a 4-bytes size
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_size(tz_parser_state *state)
+static mv_parser_result
+mv_step_size(mv_parser_state *state)
 {
     ASSERT_STEP(state, SIZE);
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
     uint8_t             b;
-    tz_must(tz_parser_read(state, &b));
+    mv_must(mv_parser_read(state, &b));
     if (op->frame->step_size.size > 255) {
-        tz_raise(TOO_LARGE);  // enforce 16-bit restriction
+        mv_raise(TOO_LARGE);  // enforce 16-bit restriction
     }
     op->frame->step_size.size = (op->frame->step_size.size << 8) | b;
     op->frame->step_size.size_len--;
     if (op->frame->step_size.size_len == 0) {
         op->frame[-1].stop = state->ofs + op->frame->step_size.size;
-        tz_must(pop_frame(state));
+        mv_must(pop_frame(state));
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
@@ -522,71 +522,71 @@ tz_step_size(tz_parser_state *state)
  *        to read its fields
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_tag(tz_parser_state *state)
+static mv_parser_result
+mv_step_tag(mv_parser_state *state)
 {
     ASSERT_STEP(state, TAG);
-    tz_operation_state            *op = &state->operation;
-    const tz_operation_descriptor *d;
+    mv_operation_state            *op = &state->operation;
+    const mv_operation_descriptor *d;
     uint8_t                        t;
-    tz_must(tz_parser_read(state, &t));
+    mv_must(mv_parser_read(state, &t));
 #ifdef HAVE_SWAP
     op->last_tag = t;
-    if (t == TZ_OPERATION_TAG_REVEAL) {
+    if (t == MV_OPERATION_TAG_REVEAL) {
         op->nb_reveal++;
     }
 #endif  // HAVE_SWAP
-    for (d = tz_operation_descriptors; d->tag != TZ_OPERATION_TAG_END; d++) {
+    for (d = mv_operation_descriptors; d->tag != MV_OPERATION_TAG_END; d++) {
         if (d->tag == t) {
-            op->frame->step                   = TZ_OPERATION_STEP_TUPLE;
+            op->frame->step                   = MV_OPERATION_STEP_TUPLE;
             op->frame->step_tuple.fields      = d->fields;
             op->frame->step_tuple.field_index = 0;
-            tz_must(push_frame(state, TZ_OPERATION_STEP_PRINT));
+            mv_must(push_frame(state, MV_OPERATION_STEP_PRINT));
             snprintf(state->field_info.field_name, 30, "Operation (%d)",
                      op->batch_index);
             op->frame->step_print.str = d->name;
-            tz_continue;
+            mv_continue;
         }
     }
-    tz_raise(INVALID_TAG);
+    mv_raise(INVALID_TAG);
 }
 
 /**
  * @brief Read a micheline expression
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_micheline(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_micheline(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_MICHELINE);
-    tz_operation_state *op   = &state->operation;
-    tz_parser_regs     *regs = &state->regs;
+    mv_operation_state *op   = &state->operation;
+    mv_parser_regs     *regs = &state->regs;
     if (!op->frame->step_read_micheline.inited) {
         op->frame->step_read_micheline.inited = 1;
         STRLCPY(state->field_info.field_name,
                 op->frame->step_read_micheline.name);
-        tz_micheline_parser_init(state);
+        mv_micheline_parser_init(state);
     }
-    tz_micheline_parser_step(state);
-    if (state->errno == TZ_BLO_DONE) {
+    mv_micheline_parser_step(state);
+    if (state->errno == MV_BLO_DONE) {
         if (state->micheline.is_unit) {
             state->field_info.is_field_complex = false;
         }
         if ((op->frame->stop != 0) && (state->ofs != op->frame->stop)) {
-            tz_raise(TOO_LARGE);
+            mv_raise(TOO_LARGE);
         }
-        tz_must(pop_frame(state));
+        mv_must(pop_frame(state));
         if (regs->oofs > 0) {
-            tz_stop(IM_FULL);
+            mv_stop(IM_FULL);
         } else {
-            tz_continue;
+            mv_continue;
         }
     }
-    tz_reraise;
+    mv_reraise;
 }
 
 /**
@@ -595,7 +595,7 @@ tz_step_read_micheline(tz_parser_state *state)
  * @param str: string to format
  */
 static void
-tz_format_amount(char *str)
+mv_format_amount(char *str)
 {
     int len = 0;
     while (str[len]) {
@@ -641,10 +641,11 @@ tz_format_amount(char *str)
     }
 add_currency:
     str[len]     = ' ';
-    str[len + 1] = 'X';
-    str[len + 2] = 'T';
-    str[len + 3] = 'Z';
-    len += 4;
+    str[len + 1] = 'M';
+    str[len + 2] = 'V';
+    str[len + 3] = 'R';
+    str[len + 4] = 'K';
+    len += 5;
     str[len] = 0;
 }
 
@@ -652,321 +653,321 @@ add_currency:
  * @brief Read a number
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_num(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_num(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_NUM);
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
     uint8_t             b;
-    tz_must(tz_parser_read(state, &b));
-    tz_must(tz_parse_num_step(&state->buffers.num,
+    mv_must(mv_parser_read(state, &b));
+    mv_must(mv_parse_num_step(&state->buffers.num,
                               &op->frame->step_read_num.state, b,
                               op->frame->step_read_num.natural));
     if (op->frame->step_read_num.state.stop) {
         uint64_t value;
-        if (!tz_string_to_mutez(state->buffers.num.decimal, &value)) {
-            tz_raise(INVALID_DATA);
+        if (!mv_string_to_mumav(state->buffers.num.decimal, &value)) {
+            mv_raise(INVALID_DATA);
         }
         switch (op->frame->step_read_num.kind) {
-        case TZ_OPERATION_FIELD_AMOUNT:
+        case MV_OPERATION_FIELD_AMOUNT:
             op->total_amount += value;
             break;
-        case TZ_OPERATION_FIELD_FEE:
+        case MV_OPERATION_FIELD_FEE:
             op->total_fee += value;
             break;
         default:
             break;
         }
         if (op->frame->step_read_num.skip) {
-            tz_must(pop_frame(state));
-            tz_continue;
+            mv_must(pop_frame(state));
+            mv_continue;
         }
         char *str       = state->buffers.num.decimal;
-        op->frame->step = TZ_OPERATION_STEP_PRINT;
+        op->frame->step = MV_OPERATION_STEP_PRINT;
         switch (op->frame->step_read_num.kind) {
-        case TZ_OPERATION_FIELD_INT:
-        case TZ_OPERATION_FIELD_NAT:
+        case MV_OPERATION_FIELD_INT:
+        case MV_OPERATION_FIELD_NAT:
             break;
-        case TZ_OPERATION_FIELD_FEE:
-        case TZ_OPERATION_FIELD_AMOUNT: {
-            tz_format_amount(str);
+        case MV_OPERATION_FIELD_FEE:
+        case MV_OPERATION_FIELD_AMOUNT: {
+            mv_format_amount(str);
             break;
         }
         default:
-            tz_raise(INVALID_STATE);
+            mv_raise(INVALID_STATE);
         }
         op->frame->step_print.str = str;
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
  * @brief Read an int32
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_int32(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_int32(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_INT32);
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
     uint8_t             b;
     int32_t            *value = &op->frame->step_read_int32.value;
     if (op->frame->step_read_int32.ofs < 4) {
-        tz_must(tz_parser_read(state, &b));
+        mv_must(mv_parser_read(state, &b));
         *value = (*value << 8) | b;
         op->frame->step_read_int32.ofs++;
     } else {
         snprintf((char *)CAPTURE, sizeof(CAPTURE), "%d", *value);
         op->frame->step_read_string.skip = op->frame->step_read_int32.skip;
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
  * @brief Read bytes
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_bytes(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_bytes(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_BYTES);
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
     if (op->frame->step_read_bytes.ofs < op->frame->step_read_bytes.len) {
         uint8_t *c;
         c = &CAPTURE[op->frame->step_read_bytes.ofs];
-        tz_must(tz_parser_read(state, c));
+        mv_must(mv_parser_read(state, c));
         op->frame->step_read_bytes.ofs++;
     } else {
         if (op->frame->step_read_num.skip) {
-            tz_must(pop_frame(state));
-            tz_continue;
+            mv_must(pop_frame(state));
+            mv_continue;
         }
         switch (op->frame->step_read_bytes.kind) {
-        case TZ_OPERATION_FIELD_SOURCE:
+        case MV_OPERATION_FIELD_SOURCE:
             memcpy(op->source, CAPTURE, 22);
             __attribute__((fallthrough));
-        case TZ_OPERATION_FIELD_PKH:
-            if (tz_format_pkh(CAPTURE, 21, (char *)CAPTURE,
+        case MV_OPERATION_FIELD_PKH:
+            if (mv_format_pkh(CAPTURE, 21, (char *)CAPTURE,
                               sizeof(CAPTURE))) {
-                tz_raise(INVALID_TAG);
+                mv_raise(INVALID_TAG);
             }
             break;
-        case TZ_OPERATION_FIELD_PK:
-            if (tz_format_pk(CAPTURE, op->frame->step_read_bytes.len,
+        case MV_OPERATION_FIELD_PK:
+            if (mv_format_pk(CAPTURE, op->frame->step_read_bytes.len,
                              (char *)CAPTURE, sizeof(CAPTURE))) {
-                tz_raise(INVALID_TAG);
+                mv_raise(INVALID_TAG);
             }
             break;
-        case TZ_OPERATION_FIELD_SR:
-            if (tz_format_base58check("sr1", CAPTURE, 20, (char *)CAPTURE,
+        case MV_OPERATION_FIELD_SR:
+            if (mv_format_base58check("sr1", CAPTURE, 20, (char *)CAPTURE,
                                       sizeof(CAPTURE))) {
-                tz_raise(INVALID_TAG);
+                mv_raise(INVALID_TAG);
             }
             break;
-        case TZ_OPERATION_FIELD_SRC:
-            if (tz_format_base58check("src1", CAPTURE, 32, (char *)CAPTURE,
+        case MV_OPERATION_FIELD_SRC:
+            if (mv_format_base58check("src1", CAPTURE, 32, (char *)CAPTURE,
                                       sizeof(CAPTURE))) {
-                tz_raise(INVALID_TAG);
+                mv_raise(INVALID_TAG);
             }
             break;
-        case TZ_OPERATION_FIELD_PROTO:
-            if (tz_format_base58check("proto", CAPTURE, 32, (char *)CAPTURE,
+        case MV_OPERATION_FIELD_PROTO:
+            if (mv_format_base58check("proto", CAPTURE, 32, (char *)CAPTURE,
                                       sizeof(CAPTURE))) {
-                tz_raise(INVALID_TAG);
+                mv_raise(INVALID_TAG);
             }
             break;
-        case TZ_OPERATION_FIELD_DESTINATION:
+        case MV_OPERATION_FIELD_DESTINATION:
             memcpy(op->destination, CAPTURE, 22);
-            if (tz_format_address(CAPTURE, 22, (char *)CAPTURE,
+            if (mv_format_address(CAPTURE, 22, (char *)CAPTURE,
                                   sizeof(CAPTURE))) {
-                tz_raise(INVALID_TAG);
+                mv_raise(INVALID_TAG);
             }
             break;
-        case TZ_OPERATION_FIELD_OPH:
-            if (tz_format_oph(CAPTURE, 32, (char *)CAPTURE,
+        case MV_OPERATION_FIELD_OPH:
+            if (mv_format_oph(CAPTURE, 32, (char *)CAPTURE,
                               sizeof(CAPTURE))) {
-                tz_raise(INVALID_TAG);
+                mv_raise(INVALID_TAG);
             }
             break;
-        case TZ_OPERATION_FIELD_BH:
-            if (tz_format_bh(CAPTURE, 32, (char *)CAPTURE, sizeof(CAPTURE))) {
-                tz_raise(INVALID_TAG);
+        case MV_OPERATION_FIELD_BH:
+            if (mv_format_bh(CAPTURE, 32, (char *)CAPTURE, sizeof(CAPTURE))) {
+                mv_raise(INVALID_TAG);
             }
             break;
         default:
-            tz_raise(INVALID_STATE);
+            mv_raise(INVALID_STATE);
         }
-        op->frame->step           = TZ_OPERATION_STEP_PRINT;
+        op->frame->step           = MV_OPERATION_STEP_PRINT;
         op->frame->step_print.str = (char *)CAPTURE;
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
  * @brief Plan the steps to read a batch of operations
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_branch(tz_parser_state *state)
+static mv_parser_result
+mv_step_branch(mv_parser_state *state)
 {
     ASSERT_STEP(state, BRANCH);
-    tz_operation_state *op = &state->operation;
-    op->frame->step        = TZ_OPERATION_STEP_BATCH;
-    tz_must(push_frame(state, TZ_OPERATION_STEP_TAG));
-    tz_continue;
+    mv_operation_state *op = &state->operation;
+    op->frame->step        = MV_OPERATION_STEP_BATCH;
+    mv_must(push_frame(state, MV_OPERATION_STEP_TAG));
+    mv_continue;
 }
 
 /**
  * @brief Ask to read remaining operations of a batch of operations
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_batch(tz_parser_state *state)
+static mv_parser_result
+mv_step_batch(mv_parser_state *state)
 {
     ASSERT_STEP(state, BATCH);
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
     op->batch_index++;
     if (state->ofs == op->frame->stop) {
-        tz_must(pop_frame(state));
+        mv_must(pop_frame(state));
     } else if (state->ofs > op->frame->stop) {
-        tz_raise(TOO_LARGE);
+        mv_raise(TOO_LARGE);
     } else {
-        tz_must(push_frame(state, TZ_OPERATION_STEP_TAG));
+        mv_must(push_frame(state, MV_OPERATION_STEP_TAG));
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
  * @brief Read a string
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_string(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_string(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_STRING);
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
     if (state->ofs == op->frame->stop) {
         CAPTURE[op->frame->step_read_string.ofs] = 0;
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
     } else {
         uint8_t b;
-        tz_must(tz_parser_read(state, &b));
+        mv_must(mv_parser_read(state, &b));
         CAPTURE[op->frame->step_read_string.ofs] = b;
         op->frame->step_read_string.ofs++;
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
  * @brief Read a binary
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_binary(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_binary(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_BINARY);
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
     if (state->ofs == op->frame->stop) {
         CAPTURE[op->frame->step_read_string.ofs] = 0;
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
     } else if ((op->frame->step_read_string.ofs + 2)
-               >= TZ_CAPTURE_BUFFER_SIZE) {
+               >= MV_CAPTURE_BUFFER_SIZE) {
         CAPTURE[op->frame->step_read_string.ofs] = 0;
         op->frame->step_read_string.ofs          = 0;
         if (!op->frame->step_read_string.skip) {
-            tz_must(push_frame(state, TZ_OPERATION_STEP_PARTIAL_PRINT));
+            mv_must(push_frame(state, MV_OPERATION_STEP_PARTIAL_PRINT));
             op->frame->step_print.str = (char *)CAPTURE;
         }
     } else {
         uint8_t b;
-        tz_must(tz_parser_read(state, &b));
+        mv_must(mv_parser_read(state, &b));
         char *buf = (char *)CAPTURE + op->frame->step_read_string.ofs;
         snprintf(buf, 4, "%02x", b);
         op->frame->step_read_string.ofs += 2;
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
  * @brief Read a smart entrypoint
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_smart_entrypoint(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_smart_entrypoint(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_SMART_ENTRYPOINT);
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
     uint8_t             b;
-    tz_must(tz_parser_read(state, &b));
+    mv_must(mv_parser_read(state, &b));
     switch (b) {
     case 0:
         strlcpy((char *)CAPTURE, "default", sizeof(CAPTURE));
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
         break;
     case 1:
         strlcpy((char *)CAPTURE, "root", sizeof(CAPTURE));
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
         break;
     case 2:
         strlcpy((char *)CAPTURE, "do", sizeof(CAPTURE));
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
         break;
     case 3:
         strlcpy((char *)CAPTURE, "set_delegate", sizeof(CAPTURE));
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
         break;
     case 4:
         strlcpy((char *)CAPTURE, "remove_delegate", sizeof(CAPTURE));
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
         break;
     case 5:
         strlcpy((char *)CAPTURE, "deposit", sizeof(CAPTURE));
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
         break;
     case 6:
         strlcpy((char *)CAPTURE, "stake", sizeof(CAPTURE));
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
         break;
     case 7:
         strlcpy((char *)CAPTURE, "unstake", sizeof(CAPTURE));
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
         break;
     case 8:
         strlcpy((char *)CAPTURE, "finalize_unstake", sizeof(CAPTURE));
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
         break;
     case 9:
         strlcpy((char *)CAPTURE, "set_delegate_parameters", sizeof(CAPTURE));
-        tz_must(tz_print_string(state));
+        mv_must(mv_print_string(state));
         break;
     case 0xFF:
-        op->frame->step                 = TZ_OPERATION_STEP_READ_STRING;
+        op->frame->step                 = MV_OPERATION_STEP_READ_STRING;
         op->frame->step_read_string.ofs = 0;
-        tz_must(push_frame(state, TZ_OPERATION_STEP_SIZE));
+        mv_must(push_frame(state, MV_OPERATION_STEP_SIZE));
         op->frame->step_size.size     = 0;
         op->frame->step_size.size_len = 1;
         break;
     default:
-        tz_raise(INVALID_TAG);
+        mv_raise(INVALID_TAG);
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
@@ -976,17 +977,17 @@ tz_step_read_smart_entrypoint(tz_parser_state *state)
  *        ignored
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_field(tz_parser_state *state)
+static mv_parser_result
+mv_step_field(mv_parser_state *state)
 {
     ASSERT_STEP(state, FIELD);
-    tz_operation_state                  *op    = &state->operation;
-    const tz_operation_field_descriptor *field = op->frame->step_field.field;
+    mv_operation_state                  *op    = &state->operation;
+    const mv_operation_field_descriptor *field = op->frame->step_field.field;
     const char                          *name  = PIC(field->name);
 
-    // is_field_complex is reset after reaching TZ_OPERATION_FIELD_END
+    // is_field_complex is reset after reaching MV_OPERATION_FIELD_END
     if (!field->skip) {
         STRLCPY(state->field_info.field_name, name);
         state->field_info.is_field_complex = field->complex;
@@ -994,186 +995,186 @@ tz_step_field(tz_parser_state *state)
     }
 
     switch (field->kind) {
-    case TZ_OPERATION_FIELD_OPTION: {
-        op->frame->step              = TZ_OPERATION_STEP_OPTION;
+    case MV_OPERATION_FIELD_OPTION: {
+        op->frame->step              = MV_OPERATION_STEP_OPTION;
         op->frame->step_option.field = PIC(field->field_option.field);
         op->frame->step_option.display_none
             = field->field_option.display_none;
         break;
     }
-    case TZ_OPERATION_FIELD_TUPLE: {
-        op->frame->step                   = TZ_OPERATION_STEP_TUPLE;
+    case MV_OPERATION_FIELD_TUPLE: {
+        op->frame->step                   = MV_OPERATION_STEP_TUPLE;
         op->frame->step_tuple.fields      = field->field_tuple.fields;
         op->frame->step_tuple.field_index = 0;
         break;
     }
-    case TZ_OPERATION_FIELD_BINARY: {
-        op->frame->step                  = TZ_OPERATION_STEP_READ_BINARY;
+    case MV_OPERATION_FIELD_BINARY: {
+        op->frame->step                  = MV_OPERATION_STEP_READ_BINARY;
         op->frame->step_read_string.ofs  = 0;
         op->frame->step_read_string.skip = field->skip;
-        tz_must(push_frame(state, TZ_OPERATION_STEP_SIZE));
+        mv_must(push_frame(state, MV_OPERATION_STEP_SIZE));
         op->frame->step_size.size     = 0;
         op->frame->step_size.size_len = 4;
         break;
     }
-    case TZ_OPERATION_FIELD_SOURCE:
-    case TZ_OPERATION_FIELD_PKH: {
-        op->frame->step                 = TZ_OPERATION_STEP_READ_BYTES;
+    case MV_OPERATION_FIELD_SOURCE:
+    case MV_OPERATION_FIELD_PKH: {
+        op->frame->step                 = MV_OPERATION_STEP_READ_BYTES;
         op->frame->step_read_bytes.kind = field->kind;
         op->frame->step_read_bytes.skip = field->skip;
         op->frame->step_read_bytes.ofs  = 0;
         op->frame->step_read_bytes.len  = 21;
         break;
     }
-    case TZ_OPERATION_FIELD_PK: {
-        op->frame->step                 = TZ_OPERATION_STEP_READ_PK;
+    case MV_OPERATION_FIELD_PK: {
+        op->frame->step                 = MV_OPERATION_STEP_READ_PK;
         op->frame->step_read_bytes.skip = field->skip;
         break;
     }
-    case TZ_OPERATION_FIELD_SR: {
-        op->frame->step                 = TZ_OPERATION_STEP_READ_BYTES;
+    case MV_OPERATION_FIELD_SR: {
+        op->frame->step                 = MV_OPERATION_STEP_READ_BYTES;
         op->frame->step_read_bytes.kind = field->kind;
         op->frame->step_read_bytes.skip = field->skip;
         op->frame->step_read_bytes.ofs  = 0;
         op->frame->step_read_bytes.len  = 20;
         break;
     }
-    case TZ_OPERATION_FIELD_SRC: {
-        op->frame->step                 = TZ_OPERATION_STEP_READ_BYTES;
+    case MV_OPERATION_FIELD_SRC: {
+        op->frame->step                 = MV_OPERATION_STEP_READ_BYTES;
         op->frame->step_read_bytes.kind = field->kind;
         op->frame->step_read_bytes.skip = field->skip;
         op->frame->step_read_bytes.ofs  = 0;
         op->frame->step_read_bytes.len  = 32;
         break;
     }
-    case TZ_OPERATION_FIELD_PROTO: {
-        op->frame->step                 = TZ_OPERATION_STEP_READ_BYTES;
+    case MV_OPERATION_FIELD_PROTO: {
+        op->frame->step                 = MV_OPERATION_STEP_READ_BYTES;
         op->frame->step_read_bytes.kind = field->kind;
         op->frame->step_read_bytes.skip = field->skip;
         op->frame->step_read_bytes.ofs  = 0;
         op->frame->step_read_bytes.len  = 32;
         break;
     }
-    case TZ_OPERATION_FIELD_PROTOS: {
-        op->frame->step                 = TZ_OPERATION_STEP_READ_PROTOS;
+    case MV_OPERATION_FIELD_PROTOS: {
+        op->frame->step                 = MV_OPERATION_STEP_READ_PROTOS;
         op->frame->step_read_list.name  = name;
         op->frame->step_read_list.index = 0;
         op->frame->step_read_list.skip  = field->skip;
-        tz_must(push_frame(state, TZ_OPERATION_STEP_SIZE));
+        mv_must(push_frame(state, MV_OPERATION_STEP_SIZE));
         op->frame->step_size.size     = 0;
         op->frame->step_size.size_len = 4;
         break;
     }
-    case TZ_OPERATION_FIELD_DESTINATION: {
-        op->frame->step                 = TZ_OPERATION_STEP_READ_BYTES;
+    case MV_OPERATION_FIELD_DESTINATION: {
+        op->frame->step                 = MV_OPERATION_STEP_READ_BYTES;
         op->frame->step_read_bytes.kind = field->kind;
         op->frame->step_read_bytes.skip = field->skip;
         op->frame->step_read_bytes.ofs  = 0;
         op->frame->step_read_bytes.len  = 22;
         break;
     }
-    case TZ_OPERATION_FIELD_NAT:
-    case TZ_OPERATION_FIELD_FEE:
-    case TZ_OPERATION_FIELD_AMOUNT: {
-        op->frame->step = TZ_OPERATION_STEP_READ_NUM;
-        tz_parse_num_state_init(&state->buffers.num,
+    case MV_OPERATION_FIELD_NAT:
+    case MV_OPERATION_FIELD_FEE:
+    case MV_OPERATION_FIELD_AMOUNT: {
+        op->frame->step = MV_OPERATION_STEP_READ_NUM;
+        mv_parse_num_state_init(&state->buffers.num,
                                 &op->frame->step_read_num.state);
         op->frame->step_read_num.kind    = field->kind;
         op->frame->step_read_num.skip    = field->skip;
         op->frame->step_read_num.natural = 1;
         break;
     }
-    case TZ_OPERATION_FIELD_INT: {
-        op->frame->step = TZ_OPERATION_STEP_READ_NUM;
-        tz_parse_num_state_init(&state->buffers.num,
+    case MV_OPERATION_FIELD_INT: {
+        op->frame->step = MV_OPERATION_STEP_READ_NUM;
+        mv_parse_num_state_init(&state->buffers.num,
                                 &op->frame->step_read_num.state);
         op->frame->step_read_num.kind    = field->kind;
         op->frame->step_read_num.skip    = field->skip;
         op->frame->step_read_num.natural = 0;
         break;
     }
-    case TZ_OPERATION_FIELD_INT32: {
-        op->frame->step                  = TZ_OPERATION_STEP_READ_INT32;
+    case MV_OPERATION_FIELD_INT32: {
+        op->frame->step                  = MV_OPERATION_STEP_READ_INT32;
         op->frame->step_read_int32.value = 0;
         op->frame->step_read_int32.ofs   = 0;
         op->frame->step_read_int32.skip  = field->skip;
         break;
     }
-    case TZ_OPERATION_FIELD_SMART_ENTRYPOINT: {
-        op->frame->step = TZ_OPERATION_STEP_READ_SMART_ENTRYPOINT;
+    case MV_OPERATION_FIELD_SMART_ENTRYPOINT: {
+        op->frame->step = MV_OPERATION_STEP_READ_SMART_ENTRYPOINT;
         op->frame->step_read_string.ofs  = 0;
         op->frame->step_read_string.skip = field->skip;
         break;
     }
-    case TZ_OPERATION_FIELD_EXPR: {
-        op->frame->step = TZ_OPERATION_STEP_READ_MICHELINE;
+    case MV_OPERATION_FIELD_EXPR: {
+        op->frame->step = MV_OPERATION_STEP_READ_MICHELINE;
         op->frame->step_read_micheline.inited = 0;
         op->frame->step_read_micheline.skip   = field->skip;
         op->frame->step_read_micheline.name   = name;
-        tz_must(push_frame(state, TZ_OPERATION_STEP_SIZE));
+        mv_must(push_frame(state, MV_OPERATION_STEP_SIZE));
         op->frame->step_size.size     = 0;
         op->frame->step_size.size_len = 4;
         break;
     }
-    case TZ_OPERATION_FIELD_STRING: {
-        op->frame->step                  = TZ_OPERATION_STEP_READ_STRING;
+    case MV_OPERATION_FIELD_STRING: {
+        op->frame->step                  = MV_OPERATION_STEP_READ_STRING;
         op->frame->step_read_string.ofs  = 0;
         op->frame->step_read_string.skip = field->skip;
-        tz_must(push_frame(state, TZ_OPERATION_STEP_SIZE));
+        mv_must(push_frame(state, MV_OPERATION_STEP_SIZE));
         op->frame->step_size.size     = 0;
         op->frame->step_size.size_len = 4;
         break;
     }
-    case TZ_OPERATION_FIELD_SORU_MESSAGES: {
-        op->frame->step                = TZ_OPERATION_STEP_READ_SORU_MESSAGES;
+    case MV_OPERATION_FIELD_SORU_MESSAGES: {
+        op->frame->step                = MV_OPERATION_STEP_READ_SORU_MESSAGES;
         op->frame->step_read_list.name = name;
         op->frame->step_read_list.index = 0;
         op->frame->step_read_list.skip  = field->skip;
-        tz_must(push_frame(state, TZ_OPERATION_STEP_SIZE));
+        mv_must(push_frame(state, MV_OPERATION_STEP_SIZE));
         op->frame->step_size.size     = 0;
         op->frame->step_size.size_len = 4;
         break;
     }
-    case TZ_OPERATION_FIELD_SORU_KIND: {
-        op->frame->step                  = TZ_OPERATION_STEP_READ_SORU_KIND;
+    case MV_OPERATION_FIELD_SORU_KIND: {
+        op->frame->step                  = MV_OPERATION_STEP_READ_SORU_KIND;
         op->frame->step_read_string.skip = field->skip;
         break;
     }
-    case TZ_OPERATION_FIELD_PKH_LIST: {
-        op->frame->step                 = TZ_OPERATION_STEP_READ_PKH_LIST;
+    case MV_OPERATION_FIELD_PKH_LIST: {
+        op->frame->step                 = MV_OPERATION_STEP_READ_PKH_LIST;
         op->frame->step_read_list.name  = name;
         op->frame->step_read_list.index = 0;
         op->frame->step_read_list.skip  = field->skip;
-        tz_must(push_frame(state, TZ_OPERATION_STEP_SIZE));
+        mv_must(push_frame(state, MV_OPERATION_STEP_SIZE));
         op->frame->step_size.size     = 0;
         op->frame->step_size.size_len = 4;
         break;
     }
-    case TZ_OPERATION_FIELD_BALLOT: {
-        op->frame->step                  = TZ_OPERATION_STEP_READ_BALLOT;
+    case MV_OPERATION_FIELD_BALLOT: {
+        op->frame->step                  = MV_OPERATION_STEP_READ_BALLOT;
         op->frame->step_read_string.skip = field->skip;
         break;
     }
     default:
-        tz_raise(INVALID_STATE);
+        mv_raise(INVALID_STATE);
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
  * @brief Read a public key
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_pk(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_pk(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_PK);
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
     uint8_t             b;
-    tz_must(tz_parser_peek(state, &b));
-    op->frame->step_read_bytes.kind = TZ_OPERATION_FIELD_PK;
+    mv_must(mv_parser_peek(state, &b));
+    op->frame->step_read_bytes.kind = MV_OPERATION_FIELD_PK;
     op->frame->step_read_bytes.ofs  = 0;
     switch (b) {
     case 0:  // edpk
@@ -1189,97 +1190,97 @@ tz_step_read_pk(tz_parser_state *state)
         op->frame->step_read_bytes.len = 49;
         break;
     default:
-        tz_raise(INVALID_TAG);
+        mv_raise(INVALID_TAG);
     }
-    op->frame->step = TZ_OPERATION_STEP_READ_BYTES;
-    tz_continue;
+    op->frame->step = MV_OPERATION_STEP_READ_BYTES;
+    mv_continue;
 }
 
 /**
  * @brief Read a list of public key hash
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_pkh_list(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_pkh_list(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_PKH_LIST);
-    tz_operation_state *op    = &state->operation;
-    tz_parser_regs     *regs  = &state->regs;
+    mv_operation_state *op    = &state->operation;
+    mv_parser_regs     *regs  = &state->regs;
     uint8_t             skip  = op->frame->step_read_list.skip;
     const char         *name  = op->frame->step_read_list.name;
     uint16_t            index = op->frame->step_read_list.index;
 
     // Remaining content from previous public key hash - display this first.
     if (regs->oofs > 0) {
-        tz_stop(IM_FULL);
+        mv_stop(IM_FULL);
     }
 
     if (op->frame->stop == state->ofs) {
-        tz_must(pop_frame(state));
+        mv_must(pop_frame(state));
     } else {
         op->frame->step_read_list.index++;
-        tz_must(push_frame(state, TZ_OPERATION_STEP_READ_BYTES));
-        snprintf(state->field_info.field_name, TZ_FIELD_NAME_SIZE, "%s (%d)",
+        mv_must(push_frame(state, MV_OPERATION_STEP_READ_BYTES));
+        snprintf(state->field_info.field_name, MV_FIELD_NAME_SIZE, "%s (%d)",
                  name, index);
-        op->frame->step_read_bytes.kind = TZ_OPERATION_FIELD_PKH;
+        op->frame->step_read_bytes.kind = MV_OPERATION_FIELD_PKH;
         op->frame->step_read_bytes.skip = skip;
         op->frame->step_read_bytes.ofs  = 0;
         op->frame->step_read_bytes.len  = 21;
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
  * @brief Read soru messages
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_soru_messages(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_soru_messages(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_SORU_MESSAGES);
-    tz_operation_state *op    = &state->operation;
-    tz_parser_regs     *regs  = &state->regs;
+    mv_operation_state *op    = &state->operation;
+    mv_parser_regs     *regs  = &state->regs;
     uint8_t             skip  = op->frame->step_read_list.skip;
     const char         *name  = op->frame->step_read_list.name;
     uint16_t            index = op->frame->step_read_list.index;
 
     // Remaining content from previous message - display this first.
     if (regs->oofs > 0) {
-        tz_stop(IM_FULL);
+        mv_stop(IM_FULL);
     }
 
     if (op->frame->stop == state->ofs) {
-        tz_must(pop_frame(state));
+        mv_must(pop_frame(state));
     } else {
         op->frame->step_read_list.index++;
-        tz_must(push_frame(state, TZ_OPERATION_STEP_READ_BINARY));
-        snprintf(state->field_info.field_name, TZ_FIELD_NAME_SIZE, "%s (%d)",
+        mv_must(push_frame(state, MV_OPERATION_STEP_READ_BINARY));
+        snprintf(state->field_info.field_name, MV_FIELD_NAME_SIZE, "%s (%d)",
                  name, index);
         op->frame->step_read_string.ofs  = 0;
         op->frame->step_read_string.skip = skip;
-        tz_must(push_frame(state, TZ_OPERATION_STEP_SIZE));
+        mv_must(push_frame(state, MV_OPERATION_STEP_SIZE));
         op->frame->step_size.size     = 0;
         op->frame->step_size.size_len = 4;
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
  * @brief Read a soru kind
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_soru_kind(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_soru_kind(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_SORU_KIND);
     uint8_t b;
-    tz_must(tz_parser_read(state, &b));
+    mv_must(mv_parser_read(state, &b));
     switch (b) {
     case 0:
         strlcpy((char *)CAPTURE, "arith", sizeof(CAPTURE));
@@ -1291,24 +1292,24 @@ tz_step_read_soru_kind(tz_parser_state *state)
         strlcpy((char *)CAPTURE, "riscv", sizeof(CAPTURE));
         break;
     default:
-        tz_raise(INVALID_TAG);
+        mv_raise(INVALID_TAG);
     }
-    tz_must(tz_print_string(state));
-    tz_continue;
+    mv_must(mv_print_string(state));
+    mv_continue;
 }
 
 /**
  * @brief Read a ballot
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_ballot(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_ballot(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_BALLOT);
     uint8_t b;
-    tz_must(tz_parser_read(state, &b));
+    mv_must(mv_parser_read(state, &b));
     switch (b) {
     case 0:
         strlcpy((char *)CAPTURE, "yay", sizeof(CAPTURE));
@@ -1320,45 +1321,45 @@ tz_step_read_ballot(tz_parser_state *state)
         strlcpy((char *)CAPTURE, "pass", sizeof(CAPTURE));
         break;
     default:
-        tz_raise(INVALID_TAG);
+        mv_raise(INVALID_TAG);
     }
-    tz_must(tz_print_string(state));
-    tz_continue;
+    mv_must(mv_print_string(state));
+    mv_continue;
 }
 
 /**
  * @brief Read a protocol list
  *
  * @param state: parser state
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_read_protos(tz_parser_state *state)
+static mv_parser_result
+mv_step_read_protos(mv_parser_state *state)
 {
     ASSERT_STEP(state, READ_PROTOS);
-    tz_operation_state *op    = &state->operation;
-    tz_parser_regs     *regs  = &state->regs;
+    mv_operation_state *op    = &state->operation;
+    mv_parser_regs     *regs  = &state->regs;
     uint8_t             skip  = op->frame->step_read_list.skip;
     const char         *name  = op->frame->step_read_list.name;
     uint16_t            index = op->frame->step_read_list.index;
 
     // Remaining content from previous proto - display this first.
     if (regs->oofs > 0) {
-        tz_stop(IM_FULL);
+        mv_stop(IM_FULL);
     }
 
     if (op->frame->stop == state->ofs) {
-        tz_must(pop_frame(state));
+        mv_must(pop_frame(state));
     } else {
         op->frame->step_read_list.index++;
-        tz_must(push_frame(state, TZ_OPERATION_STEP_READ_BYTES));
+        mv_must(push_frame(state, MV_OPERATION_STEP_READ_BYTES));
         snprintf(state->field_info.field_name, 30, "%s (%d)", name, index);
-        op->frame->step_read_bytes.kind = TZ_OPERATION_FIELD_PROTO;
+        op->frame->step_read_bytes.kind = MV_OPERATION_FIELD_PROTO;
         op->frame->step_read_bytes.skip = skip;
         op->frame->step_read_bytes.ofs  = 0;
         op->frame->step_read_bytes.len  = 32;
     }
-    tz_continue;
+    mv_continue;
 }
 
 /**
@@ -1367,47 +1368,47 @@ tz_step_read_protos(tz_parser_state *state)
  * @param state: parser state
  * @param partial: If partial true, then the string is not yet
  *                 complete
- * @return tz_parser_result: parser result
+ * @return mv_parser_result: parser result
  */
-static tz_parser_result
-tz_step_print(tz_parser_state *state, bool partial)
+static mv_parser_result
+mv_step_print(mv_parser_state *state, bool partial)
 {
-    if ((state->operation.frame->step != TZ_OPERATION_STEP_PRINT)
+    if ((state->operation.frame->step != MV_OPERATION_STEP_PRINT)
         && (state->operation.frame->step
-            != TZ_OPERATION_STEP_PARTIAL_PRINT)) {
+            != MV_OPERATION_STEP_PARTIAL_PRINT)) {
         PRINTF("[DEBUG] expected step %s or step %s but got step %s)\n",
-               STRING_STEP(TZ_OPERATION_STEP_PRINT),
-               STRING_STEP(TZ_OPERATION_STEP_PARTIAL_PRINT),
+               STRING_STEP(MV_OPERATION_STEP_PRINT),
+               STRING_STEP(MV_OPERATION_STEP_PARTIAL_PRINT),
                STRING_STEP(state->operation.frame->step));
-        tz_raise(INVALID_STATE);
+        mv_raise(INVALID_STATE);
     }
-    tz_operation_state *op  = &state->operation;
+    mv_operation_state *op  = &state->operation;
     const char         *str = PIC(op->frame->step_print.str);
     if (*str) {
-        tz_must(tz_parser_put(state, *str));
+        mv_must(mv_parser_put(state, *str));
         op->frame->step_print.str++;
     } else {
-        tz_must(pop_frame(state));
+        mv_must(pop_frame(state));
         if (!partial) {
-            tz_stop(IM_FULL);
+            mv_stop(IM_FULL);
         }
     }
-    tz_continue;
+    mv_continue;
 }
 
-tz_parser_result
-tz_operation_parser_step(tz_parser_state *state)
+mv_parser_result
+mv_operation_parser_step(mv_parser_state *state)
 {
-    tz_operation_state *op = &state->operation;
+    mv_operation_state *op = &state->operation;
 
     // cannot restart after error
-    if (TZ_IS_ERR(state->errno)) {
-        tz_reraise;
+    if (MV_IS_ERR(state->errno)) {
+        mv_reraise;
     }
 
     // nothing else to do
     if (op->frame == NULL) {
-        tz_stop(DONE);
+        mv_stop(DONE);
     }
 
     PRINTF(
@@ -1415,79 +1416,79 @@ tz_operation_parser_step(tz_parser_state *state)
         "step: %s, errno: %s)\n",
         (int)(op->frame - op->stack), (int)state->ofs, (int)op->stack[0].stop,
         (int)state->regs.ilen, (int)state->regs.oofs,
-        STRING_STEP(op->frame->step), tz_parser_result_name(state->errno));
+        STRING_STEP(op->frame->step), mv_parser_result_name(state->errno));
 
     switch (op->frame->step) {
-    case TZ_OPERATION_STEP_OPTION:
-        tz_must(tz_step_option(state));
+    case MV_OPERATION_STEP_OPTION:
+        mv_must(mv_step_option(state));
         break;
-    case TZ_OPERATION_STEP_TUPLE:
-        tz_must(tz_step_tuple(state));
+    case MV_OPERATION_STEP_TUPLE:
+        mv_must(mv_step_tuple(state));
         break;
-    case TZ_OPERATION_STEP_MAGIC:
-        tz_must(tz_step_magic(state));
+    case MV_OPERATION_STEP_MAGIC:
+        mv_must(mv_step_magic(state));
         break;
-    case TZ_OPERATION_STEP_SIZE:
-        tz_must(tz_step_size(state));
+    case MV_OPERATION_STEP_SIZE:
+        mv_must(mv_step_size(state));
         break;
-    case TZ_OPERATION_STEP_TAG:
-        tz_must(tz_step_tag(state));
+    case MV_OPERATION_STEP_TAG:
+        mv_must(mv_step_tag(state));
         break;
-    case TZ_OPERATION_STEP_READ_MICHELINE:
-        tz_must(tz_step_read_micheline(state));
+    case MV_OPERATION_STEP_READ_MICHELINE:
+        mv_must(mv_step_read_micheline(state));
         break;
-    case TZ_OPERATION_STEP_READ_NUM:
-        tz_must(tz_step_read_num(state));
+    case MV_OPERATION_STEP_READ_NUM:
+        mv_must(mv_step_read_num(state));
         break;
-    case TZ_OPERATION_STEP_READ_INT32:
-        tz_must(tz_step_read_int32(state));
+    case MV_OPERATION_STEP_READ_INT32:
+        mv_must(mv_step_read_int32(state));
         break;
-    case TZ_OPERATION_STEP_READ_BYTES:
-        tz_must(tz_step_read_bytes(state));
+    case MV_OPERATION_STEP_READ_BYTES:
+        mv_must(mv_step_read_bytes(state));
         break;
-    case TZ_OPERATION_STEP_BRANCH:
-        tz_must(tz_step_branch(state));
+    case MV_OPERATION_STEP_BRANCH:
+        mv_must(mv_step_branch(state));
         break;
-    case TZ_OPERATION_STEP_BATCH:
-        tz_must(tz_step_batch(state));
+    case MV_OPERATION_STEP_BATCH:
+        mv_must(mv_step_batch(state));
         break;
-    case TZ_OPERATION_STEP_READ_STRING:
-        tz_must(tz_step_read_string(state));
+    case MV_OPERATION_STEP_READ_STRING:
+        mv_must(mv_step_read_string(state));
         break;
-    case TZ_OPERATION_STEP_READ_BINARY:
-        tz_must(tz_step_read_binary(state));
+    case MV_OPERATION_STEP_READ_BINARY:
+        mv_must(mv_step_read_binary(state));
         break;
-    case TZ_OPERATION_STEP_READ_SMART_ENTRYPOINT:
-        tz_must(tz_step_read_smart_entrypoint(state));
+    case MV_OPERATION_STEP_READ_SMART_ENTRYPOINT:
+        mv_must(mv_step_read_smart_entrypoint(state));
         break;
-    case TZ_OPERATION_STEP_FIELD:
-        tz_must(tz_step_field(state));
+    case MV_OPERATION_STEP_FIELD:
+        mv_must(mv_step_field(state));
         break;
-    case TZ_OPERATION_STEP_READ_PK:
-        tz_must(tz_step_read_pk(state));
+    case MV_OPERATION_STEP_READ_PK:
+        mv_must(mv_step_read_pk(state));
         break;
-    case TZ_OPERATION_STEP_READ_SORU_MESSAGES:
-        tz_must(tz_step_read_soru_messages(state));
+    case MV_OPERATION_STEP_READ_SORU_MESSAGES:
+        mv_must(mv_step_read_soru_messages(state));
         break;
-    case TZ_OPERATION_STEP_READ_SORU_KIND:
-        tz_must(tz_step_read_soru_kind(state));
+    case MV_OPERATION_STEP_READ_SORU_KIND:
+        mv_must(mv_step_read_soru_kind(state));
         break;
-    case TZ_OPERATION_STEP_READ_BALLOT:
-        tz_must(tz_step_read_ballot(state));
+    case MV_OPERATION_STEP_READ_BALLOT:
+        mv_must(mv_step_read_ballot(state));
         break;
-    case TZ_OPERATION_STEP_READ_PROTOS:
-        tz_must(tz_step_read_protos(state));
+    case MV_OPERATION_STEP_READ_PROTOS:
+        mv_must(mv_step_read_protos(state));
         break;
-    case TZ_OPERATION_STEP_READ_PKH_LIST:
-        tz_must(tz_step_read_pkh_list(state));
+    case MV_OPERATION_STEP_READ_PKH_LIST:
+        mv_must(mv_step_read_pkh_list(state));
         break;
-    case TZ_OPERATION_STEP_PRINT:
-    case TZ_OPERATION_STEP_PARTIAL_PRINT:
-        tz_must(tz_step_print(
-            state, op->frame->step == TZ_OPERATION_STEP_PARTIAL_PRINT));
+    case MV_OPERATION_STEP_PRINT:
+    case MV_OPERATION_STEP_PARTIAL_PRINT:
+        mv_must(mv_step_print(
+            state, op->frame->step == MV_OPERATION_STEP_PARTIAL_PRINT));
         break;
     default:
-        tz_raise(INVALID_STATE);
+        mv_raise(INVALID_STATE);
     }
-    tz_continue;
+    mv_continue;
 }

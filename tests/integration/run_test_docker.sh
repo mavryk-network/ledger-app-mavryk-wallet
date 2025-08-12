@@ -29,10 +29,10 @@ docker run --rm -it -v "$(realpath .):/app"              	\
        -e APPVERSION_P=$APPVERSION_P                    \
        -e APPVERSION=$APPVERSION                        \
        -e VERSION_BYTES=$VERSION_BYTES                  \
-    --entrypoint=/bin/bash ledger-app-tezos-integration-tests	   \
+    --entrypoint=/bin/bash ledger-app-mavryk-integration-tests	   \
     -c " apt install -y libsodium-dev; \
-		python3 -m venv tezos_test_env --system-site-package;      \
-		source ./tezos_test_env/bin/activate;                      \
+		python3 -m venv mavryk_test_env --system-site-package;      \
+		source ./mavryk_test_env/bin/activate;                      \
 		python3 -m pip install --upgrade pip -q;    \
 		python3 -m pip install -r tests/requirements.txt -q;    \
      ./tests/integration/run_test_local.sh -F -m $*"

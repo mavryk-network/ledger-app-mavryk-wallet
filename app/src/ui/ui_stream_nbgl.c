@@ -25,10 +25,10 @@
 
 #define G_stream global.ui.stream
 
-bool tz_ui_nav_cb(void);
+bool mv_ui_nav_cb(void);
 bool has_final_screen(void);
-void tz_ui_stream_start(void);
-void tz_transaction_choice(bool getMorePairs);
+void mv_ui_stream_start(void);
+void mv_transaction_choice(bool getMorePairs);
 
 void        drop_last_screen(void);
 void        push_str(const char *text, size_t len, char **out);
@@ -36,9 +36,9 @@ void        switch_to_blindsigning_on_error(void);
 static void ui_stream_init(void);
 
 void
-tz_reject(void)
+mv_reject(void)
 {
-    tz_ui_stream_t *s = &G_stream;
+    mv_ui_stream_t *s = &G_stream;
 
     FUNC_ENTER(("void"));
 
@@ -47,9 +47,9 @@ tz_reject(void)
     global.keys.apdu.sign.received_last_msg = true;
 
     if (global.step == ST_BLIND_SIGN) {
-        s->cb(TZ_UI_STREAM_CB_BLINDSIGN_REJECT);
+        s->cb(MV_UI_STREAM_CB_BLINDSIGN_REJECT);
     } else {
-        s->cb(TZ_UI_STREAM_CB_REJECT);
+        s->cb(MV_UI_STREAM_CB_REJECT);
     }
 
     global.step = ST_IDLE;
@@ -58,12 +58,12 @@ tz_reject(void)
 }
 
 void
-tz_reject_ui(void)
+mv_reject_ui(void)
 {
     FUNC_ENTER(("void"));
 
     nbgl_useCaseConfirm("Reject transaction?", NULL, REJECT_CONFIRM_BUTTON,
-                        RESUME("transaction"), tz_reject);
+                        RESUME("transaction"), mv_reject);
 
     FUNC_LEAVE();
 }
@@ -71,41 +71,41 @@ tz_reject_ui(void)
 static void
 blindsign_skip_callback(void)
 {
-    TZ_PREAMBLE(("Blindsign reason: %d", global.blindsign_reason));
+    MV_PREAMBLE(("Blindsign reason: %d", global.blindsign_reason));
 
     if (global.blindsign_reason == REASON_NONE) {
-        tz_ui_stream_close();
-        tz_ui_stream_t *s = &G_stream;
-        s->cb(TZ_UI_STREAM_CB_SUMMARY);
+        mv_ui_stream_close();
+        mv_ui_stream_t *s = &G_stream;
+        s->cb(MV_UI_STREAM_CB_SUMMARY);
     } else if (global.blindsign_reason == REASON_PARSING_ERROR) {
         switch_to_blindsigning_on_error();
     }
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 
 static void
 blindsign_choice(bool confirm)
 {
-    TZ_PREAMBLE(("void"));
+    MV_PREAMBLE(("void"));
     if (confirm) {
         global.step = ST_BLIND_SIGN;
-        tz_reject_ui();
+        mv_reject_ui();
     } else {
-        tz_ui_stream_t *s = &G_stream;
+        mv_ui_stream_t *s = &G_stream;
 
-        TZ_ASSERT(EXC_UNEXPECTED_STATE,
+        MV_ASSERT(EXC_UNEXPECTED_STATE,
                   global.blindsign_reason != REASON_NONE);
-        s->cb(TZ_UI_STREAM_CB_BLINDSIGN);
+        s->cb(MV_UI_STREAM_CB_BLINDSIGN);
     }
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 
 void
 switch_to_blindsigning_on_error(void)
 {
-    TZ_PREAMBLE(("void"));
-    TZ_ASSERT(EXC_UNEXPECTED_STATE, (global.step == ST_CLEAR_SIGN)
+    MV_PREAMBLE(("void"));
+    MV_ASSERT(EXC_UNEXPECTED_STATE, (global.step == ST_CLEAR_SIGN)
                                         || (global.step == ST_SUMMARY_SIGN));
     global.keys.apdu.sign.step = SIGN_ST_WAIT_USER_INPUT;
 
@@ -122,41 +122,41 @@ switch_to_blindsigning_on_error(void)
                        "The transaction cannot be decoded", blindsign_msg,
                        "Reject transaction", "Proceed to Blindsign",
                        blindsign_choice);
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 
 void
 expert_mode_splash(void)
 {
-    TZ_PREAMBLE(("void"));
+    MV_PREAMBLE(("void"));
 
     nbgl_useCaseReviewStart(&C_Important_Circle_64px, "Expert mode",
                             "Next screen requires careful review",
-                            "Reject transaction", tz_ui_stream_start,
-                            tz_reject_ui);
+                            "Reject transaction", mv_ui_stream_start,
+                            mv_reject_ui);
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 
 void
 handle_expert_mode(bool confirm)
 {
-    TZ_PREAMBLE(("void"));
+    MV_PREAMBLE(("void"));
     if (confirm) {
         if (!N_settings.expert_mode) {
             toggle_expert_mode();
         }
 
-        nbgl_useCaseStatus("EXPERT MODE\nENABLED", true, tz_ui_stream_start);
+        nbgl_useCaseStatus("EXPERT MODE\nENABLED", true, mv_ui_stream_start);
 
     } else {
-        tz_reject_ui();
+        mv_reject_ui();
     }
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 
 void
-tz_enable_expert_mode_ui(void)
+mv_enable_expert_mode_ui(void)
 {
     FUNC_LEAVE();
 
@@ -170,14 +170,14 @@ tz_enable_expert_mode_ui(void)
 }
 
 void
-tz_accept_ui(void)
+mv_accept_ui(void)
 {
-    tz_ui_stream_t *s = &G_stream;
+    mv_ui_stream_t *s = &G_stream;
 
     FUNC_ENTER(("void"));
 
     global.keys.apdu.sign.step = SIGN_ST_WAIT_USER_INPUT;
-    s->cb(TZ_UI_STREAM_CB_ACCEPT);
+    s->cb(MV_UI_STREAM_CB_ACCEPT);
 
     nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_home_init);
 
@@ -185,57 +185,57 @@ tz_accept_ui(void)
 }
 
 void
-tz_choice_ui(bool accept)
+mv_choice_ui(bool accept)
 {
     FUNC_ENTER(("accept=%d", accept));
 
     if (accept) {
-        tz_accept_ui();
+        mv_accept_ui();
     } else {
-        tz_reject();
+        mv_reject();
     }
 
     FUNC_LEAVE();
 }
 
 void
-tz_ui_continue(void)
+mv_ui_continue(void)
 {
-    tz_ui_stream_t *s = &G_stream;
+    mv_ui_stream_t *s = &G_stream;
 
-    TZ_PREAMBLE(("void"));
+    MV_PREAMBLE(("void"));
 
     if (!s->full) {
-        TZ_CHECK(s->cb(TZ_UI_STREAM_CB_REFILL));
+        MV_CHECK(s->cb(MV_UI_STREAM_CB_REFILL));
     }
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 
 void
-tz_ui_stream_cb(void)
+mv_ui_stream_cb(void)
 {
     FUNC_ENTER(("void"));
-    bool result = tz_ui_nav_cb();
+    bool result = mv_ui_nav_cb();
     if (result) {
-        tz_ui_stream_t         *s = &G_stream;
-        tz_ui_stream_display_t *c = &s->current_screen;
+        mv_ui_stream_t         *s = &G_stream;
+        mv_ui_stream_display_t *c = &s->current_screen;
 
         if (N_settings.blindsigning) {
             nbgl_useCaseReviewStreamingContinueExt(
-                &c->list, tz_transaction_choice, blindsign_skip_callback);
+                &c->list, mv_transaction_choice, blindsign_skip_callback);
         } else {
             nbgl_useCaseReviewStreamingContinue(&c->list,
-                                                tz_transaction_choice);
+                                                mv_transaction_choice);
         }
     }
     FUNC_LEAVE();
 }
 
 void
-tz_ui_stream(void)
+mv_ui_stream(void)
 {
-    tz_ui_stream_t *s = &G_stream;
+    mv_ui_stream_t *s = &G_stream;
     FUNC_ENTER(("void"));
 
     if (s->stream_cb) {
@@ -246,27 +246,27 @@ tz_ui_stream(void)
 }
 
 void
-tz_ui_review_start(void)
+mv_ui_review_start(void)
 {
-    tz_ui_stream_t *s = &G_stream;
+    mv_ui_stream_t *s = &G_stream;
 
     FUNC_ENTER(("void"));
 
-    s->stream_cb = &tz_ui_stream_cb;
-    tz_ui_stream();
+    s->stream_cb = &mv_ui_stream_cb;
+    mv_ui_stream();
 
     FUNC_LEAVE();
 }
 
 void
-tz_transaction_choice(bool getMorePairs)
+mv_transaction_choice(bool getMorePairs)
 {
     FUNC_ENTER();
     if (getMorePairs) {
         // get more pairs
-        tz_ui_review_start();
+        mv_ui_review_start();
     } else {
-        tz_reject();
+        mv_reject();
     }
 
     FUNC_LEAVE();
@@ -274,7 +274,7 @@ tz_transaction_choice(bool getMorePairs)
 static void
 ui_stream_init(void)
 {
-    tz_ui_stream_t *s = &G_stream;
+    mv_ui_stream_t *s = &G_stream;
 
     s->full          = false;
     s->last          = 0;
@@ -285,9 +285,9 @@ ui_stream_init(void)
     ui_strings_init();
 }
 void
-tz_ui_stream_init(void (*cb)(tz_ui_cb_type_t cb_type))
+mv_ui_stream_init(void (*cb)(mv_ui_cb_type_t cb_type))
 {
-    tz_ui_stream_t *s = &G_stream;
+    mv_ui_stream_t *s = &G_stream;
     memset(s, 0x0, sizeof(*s));
     FUNC_ENTER(("cb=%p", cb));
     ui_stream_init();
@@ -298,36 +298,36 @@ tz_ui_stream_init(void (*cb)(tz_ui_cb_type_t cb_type))
     if (N_settings.blindsigning) {
         op_type |= SKIPPABLE_OPERATION;
     }
-    nbgl_useCaseReviewStreamingStart(op_type, &C_tezos,
+    nbgl_useCaseReviewStreamingStart(op_type, &C_mavryk,
                                      "Review request to sign operation", NULL,
-                                     tz_transaction_choice);
+                                     mv_transaction_choice);
 
     FUNC_LEAVE();
 }
 
 void
-tz_ui_stream_start(void)
+mv_ui_stream_start(void)
 {
     FUNC_ENTER(("void"));
-    tz_ui_stream_cb();
+    mv_ui_stream_cb();
     FUNC_LEAVE();
 }
 
 bool
-tz_ui_nav_cb(void)
+mv_ui_nav_cb(void)
 {
     FUNC_ENTER(("void"));
 
-    tz_ui_stream_t         *s      = &G_stream;
-    tz_ui_stream_display_t *c      = &s->current_screen;
+    mv_ui_stream_t         *s      = &G_stream;
+    mv_ui_stream_display_t *c      = &s->current_screen;
     bool                    result = true;
-    tz_parser_state        *st = &global.keys.apdu.sign.u.clear.parser_state;
+    mv_parser_state        *st = &global.keys.apdu.sign.u.clear.parser_state;
 
     // Continue receiving data from the apdu until s->full is true.
     while (((s->total < 0) || (s->current == s->total)) && !s->full
-           && (st->errno < TZ_ERR_INVALID_TAG)) {
-        PRINTF("tz_ui_nav_cb: Looping...\n");
-        tz_ui_continue();
+           && (st->errno < MV_ERR_INVALID_TAG)) {
+        PRINTF("mv_ui_nav_cb: Looping...\n");
+        mv_ui_continue();
         if (global.step == ST_ERROR) {
             break;
         } else if (global.keys.apdu.sign.step == SIGN_ST_WAIT_DATA) {
@@ -349,26 +349,26 @@ tz_ui_nav_cb(void)
     } else if ((s->current == s->total) && s->full) {
         PRINTF("[DEBUG] signing...\n");
         result = false;
-        nbgl_useCaseReviewStreamingFinish(SIGN("transaction"), tz_choice_ui);
+        nbgl_useCaseReviewStreamingFinish(SIGN("transaction"), mv_choice_ui);
     } else if (s->total >= 0) {
         if (s->current < s->total) {
             s->current++;
 
-            size_t bucket = s->current % TZ_UI_STREAM_HISTORY_SCREENS;
+            size_t bucket = s->current % MV_UI_STREAM_HISTORY_SCREENS;
 
-            switch (tz_ui_stream_get_cb_type()) {
-            case TZ_UI_STREAM_CB_CANCEL:
+            switch (mv_ui_stream_get_cb_type()) {
+            case MV_UI_STREAM_CB_CANCEL:
                 switch_to_blindsigning_on_error();
                 result = false;
                 break;
-            case TZ_UI_STREAM_CB_EXPERT_MODE_ENABLE:
-                tz_enable_expert_mode_ui();
+            case MV_UI_STREAM_CB_EXPERT_MODE_ENABLE:
+                mv_enable_expert_mode_ui();
                 result = false;
                 break;
-            case TZ_UI_STREAM_CB_EXPERT_MODE_FIELD:
+            case MV_UI_STREAM_CB_EXPERT_MODE_FIELD:
                 expert_mode_splash();
                 s->current--;
-                s->screens[bucket].cb_type = TZ_UI_STREAM_CB_NOCB;
+                s->screens[bucket].cb_type = MV_UI_STREAM_CB_NOCB;
                 result                     = false;
                 break;
             default:
@@ -391,8 +391,8 @@ tz_ui_nav_cb(void)
 bool
 has_final_screen(void)
 {
-    tz_ui_stream_t *s  = &G_stream;
-    size_t last_bucket = (s->total + 1) % TZ_UI_STREAM_HISTORY_SCREENS;
+    mv_ui_stream_t *s  = &G_stream;
+    size_t last_bucket = (s->total + 1) % MV_UI_STREAM_HISTORY_SCREENS;
     return s->screens[last_bucket].nb_pairs > 0;
 }
 
@@ -402,15 +402,15 @@ has_final_screen(void)
  * s->total + 1 points to the screen under construction
  */
 size_t
-tz_ui_stream_pushl(tz_ui_cb_type_t cb_type, const char *title,
+mv_ui_stream_pushl(mv_ui_cb_type_t cb_type, const char *title,
                    const char *value, ssize_t max,
-                   __attribute__((unused)) tz_ui_layout_type_t layout_type,
-                   __attribute__((unused)) tz_ui_icon_t        icon)
+                   __attribute__((unused)) mv_ui_layout_type_t layout_type,
+                   __attribute__((unused)) mv_ui_icon_t        icon)
 {
-    tz_ui_stream_t *s = &G_stream;
+    mv_ui_stream_t *s = &G_stream;
     bool            push_to_next;
     bool            append    = false;
-    size_t          max_pairs = (cb_type == TZ_UI_STREAM_CB_CANCEL)
+    size_t          max_pairs = (cb_type == MV_UI_STREAM_CB_CANCEL)
                                     ? 1
                                     : NB_MAX_DISPLAYED_PAIRS_IN_REVIEW;
 
@@ -420,36 +420,36 @@ tz_ui_stream_pushl(tz_ui_cb_type_t cb_type, const char *title,
         THROW(EXC_UNKNOWN);
     }
 
-#ifdef TEZOS_DEBUG
+#ifdef MAVRYK_DEBUG
     int    prev_total   = s->total;
     int    prev_current = s->current;
     int    prev_last    = s->last;
     size_t i;
 #endif
 
-    int    bucket = (s->total + 1) % TZ_UI_STREAM_HISTORY_SCREENS;
+    int    bucket = (s->total + 1) % MV_UI_STREAM_HISTORY_SCREENS;
     size_t idx    = s->screens[bucket].nb_pairs;
     size_t offset = 0;
     size_t length = strlen(value);
 
     if ((s->total >= 0)
-        && ((s->current % TZ_UI_STREAM_HISTORY_SCREENS) == bucket)) {
+        && ((s->current % MV_UI_STREAM_HISTORY_SCREENS) == bucket)) {
         PRINTF(
             "[ERROR] PANIC!!!! Overwriting current screen, some bad things "
             "are happening\n");
     }
 
-    if (((cb_type == TZ_UI_STREAM_CB_CANCEL)
-         || (cb_type == TZ_UI_STREAM_CB_EXPERT_MODE_ENABLE)
-         || (cb_type == TZ_UI_STREAM_CB_EXPERT_MODE_FIELD))
+    if (((cb_type == MV_UI_STREAM_CB_CANCEL)
+         || (cb_type == MV_UI_STREAM_CB_EXPERT_MODE_ENABLE)
+         || (cb_type == MV_UI_STREAM_CB_EXPERT_MODE_FIELD))
         && (idx > 0)) {
         PRINTF("[DEBUG] PUSH_TO_NEXT: %x\n", cb_type);
         s->total++;
-        if ((s->total % TZ_UI_STREAM_HISTORY_SCREENS)
-            == (s->last % TZ_UI_STREAM_HISTORY_SCREENS)) {
+        if ((s->total % MV_UI_STREAM_HISTORY_SCREENS)
+            == (s->last % MV_UI_STREAM_HISTORY_SCREENS)) {
             drop_last_screen();
         }
-        offset = tz_ui_stream_pushl(cb_type, title, value, max, layout_type,
+        offset = mv_ui_stream_pushl(cb_type, title, value, max, layout_type,
                                     icon);
         push_to_next = false;
         // Will be update later
@@ -542,14 +542,14 @@ tz_ui_stream_pushl(tz_ui_cb_type_t cb_type, const char *title,
         || (append && (offset == 0))) {
         s->total++;
         if ((s->total > 0)
-            && ((s->total % TZ_UI_STREAM_HISTORY_SCREENS)
-                == (s->last % TZ_UI_STREAM_HISTORY_SCREENS))) {
+            && ((s->total % MV_UI_STREAM_HISTORY_SCREENS)
+                == (s->last % MV_UI_STREAM_HISTORY_SCREENS))) {
             drop_last_screen();
         }
     }
 
-#ifdef TEZOS_DEBUG
-    PRINTF("[DEBUG] tz_ui_stream_pushl(%s, %s, %u)\n", title, value, max);
+#ifdef MAVRYK_DEBUG
+    PRINTF("[DEBUG] mv_ui_stream_pushl(%s, %s, %u)\n", title, value, max);
     PRINTF("[DEBUG]        bucket     %d\n", bucket);
     PRINTF("[DEBUG]        nb_pairs   %d\n", s->screens[bucket].nb_pairs);
 
@@ -564,7 +564,7 @@ tz_ui_stream_pushl(tz_ui_cb_type_t cb_type, const char *title,
     PRINTF("[DEBUG]        last:      %d -> %d\n", prev_last, s->last);
     PRINTF("[DEBUG]        offset:    %d\n", offset);
     PRINTF("[DEBUG]        cb:        %x\n", s->screens[bucket].cb_type);
-#endif  // TEZOS_DEBUG
+#endif  // MAVRYK_DEBUG
 
     FUNC_LEAVE();
 
@@ -574,19 +574,19 @@ tz_ui_stream_pushl(tz_ui_cb_type_t cb_type, const char *title,
 void
 drop_last_screen(void)
 {
-    tz_ui_stream_t *s      = &G_stream;
-    size_t          bucket = s->last % TZ_UI_STREAM_HISTORY_SCREENS;
+    mv_ui_stream_t *s      = &G_stream;
+    size_t          bucket = s->last % MV_UI_STREAM_HISTORY_SCREENS;
     size_t          i;
 
-    TZ_PREAMBLE(("last: %d", s->last));
+    MV_PREAMBLE(("last: %d", s->last));
 
     for (i = 0; i < s->screens[bucket].nb_pairs; i++) {
         if (s->screens[bucket].pairs[i].item) {
-            TZ_CHECK(
+            MV_CHECK(
                 ui_strings_drop((char **)&s->screens[bucket].pairs[i].item));
         }
         if (s->screens[bucket].pairs[i].value) {
-            TZ_CHECK(
+            MV_CHECK(
                 ui_strings_drop((char **)&s->screens[bucket].pairs[i].value));
         }
     }
@@ -594,7 +594,7 @@ drop_last_screen(void)
 
     s->last++;
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 
 #endif

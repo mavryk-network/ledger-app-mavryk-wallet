@@ -19,7 +19,7 @@ debug: app_nanos_dbg.tgz \
 DOCKER			= docker
 DOCKER_RUN		= $(DOCKER) run --rm -i -v "$(realpath .):/app"
 DOCKER_RUN_APP_BUILDER	= $(DOCKER_RUN) ledger-app-builder:latest
-DOCKER_RUN_APP_OCAML	= $(DOCKER_RUN) ledger-app-tezos-ocaml:latest
+DOCKER_RUN_APP_OCAML	= $(DOCKER_RUN) ledger-app-mavryk-ocaml:latest
 
 #
 # Fetch the docker images:
@@ -38,13 +38,13 @@ docker_ledger_app_builder:
 			ledger-app-builder
 
 docker_ledger_app_ocaml:
-	$(DOCKER) build -t ledger-app-tezos-ocaml \
+	$(DOCKER) build -t ledger-app-mavryk-ocaml \
 			-f docker/Dockerfile.ocaml docker --platform linux/$(CPU)
 
 docker_ledger_app_integration_tests:
 	$(DOCKER) pull $(LEDGERHQ)/ledger-app-builder/ledger-app-dev-tools:latest
 	$(DOCKER) image tag $(LEDGERHQ)/ledger-app-builder/ledger-app-dev-tools:latest \
-			ledger-app-tezos-integration-tests
+			ledger-app-mavryk-integration-tests
 
 docker_images: docker_speculos		\
 	docker_ledger_app_builder	\
@@ -101,18 +101,42 @@ integration_tests_basic_%:	app_%.tgz   \
 				app_%_dbg.tgz			\
 				$(shell find tests/integration/python -type f)
 	docker run --rm -i -v "$(realpath .):/app" \
-	--entrypoint=/bin/bash ledger-app-tezos-integration-tests -c "  \
+	--entrypoint=/bin/bash ledger-app-mavryk-integration-tests -c "  \
 		TMP_DIR=\$$(mktemp -d /tmp/foo-XXXXXX);                   \
 		cd /app;                                                  \
 		tar xfz app_$*_dbg.tgz -C \$$TMP_DIR;                     \
-		apt install -y libsodium-dev;     \
-		python3 -m venv tezos_test_env --system-site-package;     \
-		source ./tezos_test_env/bin/activate;                     \
+		apt update && apt install -y libsodium-dev libgmp-dev libsodium23;     \
+		python3 -m venv mavryk_test_env --system-site-package;     \
+		source ./mavryk_test_env/bin/activate;                     \
 		python3 -m pip install --upgrade pip -q;                  \
+		python3 -m pip install --force-reinstall python-dateutil==2.8.2 -q;     \
 		python3 -m pip install -r tests/requirements.txt -q ;     \
 		python3 -m pytest -n 32 tests/integration/python/ --tb=no \
 			--device $* --app \$$TMP_DIR/app.elf              \
 			--log-dir integration_tests_log"
+
+regenerate_snapshots_%:	app_%_dbg.tgz
+	docker run --rm -i -v "$(realpath .):/app" \
+	--entrypoint=/bin/bash ledger-app-mavryk-integration-tests -c "  \
+		TMP_DIR=\$$(mktemp -d /tmp/foo-XXXXXX);                   \
+		cd /app;                                                  \
+		tar xfz app_$*_dbg.tgz -C \$$TMP_DIR;                     \
+		apt update && apt install -y libsodium-dev libgmp-dev libsodium23;     \
+		python3 -m venv mavryk_test_env --system-site-package;     \
+		source ./mavryk_test_env/bin/activate;                     \
+		python3 -m pip install --upgrade pip -q;                  \
+		python3 -m pip install --force-reinstall python-dateutil==2.8.2 -q;     \
+		python3 -m pip install -r tests/requirements.txt -q ;     \
+		python3 -m pytest -n 32 tests/integration/python/ --tb=no \
+			--device $* --app \$$TMP_DIR/app.elf              \
+			--log-dir integration_tests_log --golden-run --maxfail=0 || true"
+	rsync -a tests/integration/python/snapshots-tmp/ tests/integration/python/snapshots/
+
+regenerate_snapshots:	regenerate_snapshots_nanos	\
+				regenerate_snapshots_nanosp	\
+				regenerate_snapshots_nanox	\
+				regenerate_snapshots_stax	\
+				regenerate_snapshots_flex
 
 integration_tests_basic:	integration_tests_basic_nanos	\
 				integration_tests_basic_nanosp	\
@@ -148,7 +172,7 @@ test/samples/operations/%/samples.hex:	tests/generate/*.ml*	\
 	    ../samples/operations/$*/samples.hex
 
 load_%: app_%.tgz
-	ledgerctl delete "Tezos Wallet"
+	ledgerctl delete "Mavryk Wallet"
 	DIR=`mktemp -d` ; tar xf $< -C $$DIR && cd $$DIR && ledgerctl install app.toml ; rm -rf $$DIR
 
 #

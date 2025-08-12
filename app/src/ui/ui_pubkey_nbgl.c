@@ -54,20 +54,20 @@ ui_pubkey_review(cx_ecfp_public_key_t *pubkey,
                  derivation_type_t     derivation_type,
                  action_validate_cb    callback)
 {
-    TZ_PREAMBLE(("pubkey=%p, derivation_type=%d, callback=%p", pubkey,
+    MV_PREAMBLE(("pubkey=%p, derivation_type=%d, callback=%p", pubkey,
                  derivation_type, callback));
 
     global.step = ST_PROMPT;
 
     G_pubkey.callback = callback;
-    TZ_LIB_CHECK(derive_pkh(pubkey, derivation_type, G_pubkey.address,
+    MV_LIB_CHECK(derive_pkh(pubkey, derivation_type, G_pubkey.address,
                             sizeof(G_pubkey.address)));
 
-    nbgl_useCaseAddressReview(G_pubkey.address, NULL, &C_tezos,
-                              "Verify Tezos\naddress", NULL,
+    nbgl_useCaseAddressReview(G_pubkey.address, NULL, &C_mavryk,
+                              "Verify Mavryk\naddress", NULL,
                               ux_pubkey_callback);
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 
 #endif

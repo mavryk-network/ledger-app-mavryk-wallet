@@ -37,7 +37,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Clear more space
         # See https://github.com/actions/runner-images/issues/2840
-        # - otherwise the runner runs out of space when building the tezos image
+        # - otherwise the runner runs out of space when building the mavryk image
         shell: bash
         run: |
           sudo rm -rf /usr/share/dotnet

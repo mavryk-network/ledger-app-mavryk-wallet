@@ -1,4 +1,4 @@
-/* Tezos Ledger application - Tezos-specific formatting function set
+/* Tezos Ledger application - Mavryk-specific formatting function set
 
    Copyright 2024 Functori <contact@functori.com>
 
@@ -24,11 +24,11 @@
 #include <string.h>
 
 /**
- * @brief Prints mutez as XTZ
+ * @brief Prints mumav as MVRK
  *
  * @param obuf: output buffer
  * @param olen: length of the output buffer
- * @param amount: amount in mutez
+ * @param amount: amount in mumav
  * @return bool: true on success
  */
-bool tz_mutez_to_string(char *obuf, size_t olen, uint64_t amount);
+bool mv_mumav_to_string(char *obuf, size_t olen, uint64_t amount);

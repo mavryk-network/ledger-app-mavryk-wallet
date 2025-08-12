@@ -21,18 +21,18 @@ from pathlib import Path
 import pytest
 
 from utils.account import Account
-from utils.backend import StatusCode, TezosBackend
+from utils.backend import StatusCode, MavrykBackend
 from utils.message import RawMessage
-from utils.navigator import TezosNavigator
+from utils.navigator import MavrykNavigator
 
 
 # Operation (0): Transaction
-# Source: tz2JPgTWZZpxZZLqHMfS69UAy1UHm4Aw5iHu
-# Fee: 0.05 XTZ
+# Source: mv2X4QWis6hXdqvo75GLK7r8CHLcUgVrQH85
+# Fee: 0.05 MVRK
 # Gas limit: 54
 # Counter: 8
 # Storage limit: 45
-# Amount: 0.24 XTZ
+# Amount: 0.24 MVRK
 # Destination: KT18amZmM5W7qDWVt2pH6uj7sCEd3kbzLrHT
 # Entrypoint: do
 # Parameter: CAR
@@ -56,15 +56,15 @@ from utils.navigator import TezosNavigator
     ]
 )
 def test_parsing_error(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         raw_msg: str,
         account: Account,
         snapshot_dir: Path
 ):
     """Check parsing error handling"""
 
-    tezos_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_expert_mode()
 
     with StatusCode.PARSE_ERROR.expected():
         with backend.sign(
@@ -72,7 +72,7 @@ def test_parsing_error(
                 RawMessage(raw_msg),
                 with_hash=True
         ):
-            tezos_navigator.refuse_sign_error_risk(snap_path=snapshot_dir)
+            mavryk_navigator.refuse_sign_error_risk(snap_path=snapshot_dir)
 
 @pytest.mark.parametrize(
     "raw_msg", [
@@ -83,15 +83,15 @@ def test_parsing_error(
     ]
 )
 def test_parsing_hard_fail(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         raw_msg: str,
         account: Account,
         snapshot_dir: Path
 ):
     """Check parsing error hard failing"""
 
-    tezos_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_expert_mode()
 
     with StatusCode.UNEXPECTED_SIGN_STATE.expected():
         with backend.sign(
@@ -99,4 +99,4 @@ def test_parsing_hard_fail(
                 RawMessage(raw_msg),
                 with_hash=True
         ):
-            tezos_navigator.hard_reject_sign(snap_path=snapshot_dir)
+            mavryk_navigator.hard_reject_sign(snap_path=snapshot_dir)

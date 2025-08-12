@@ -68,7 +68,7 @@ end
 module Curve = struct
   type t = ED25519 | SECP256K1 | SECP256R1 | BIP32_ED25519
 
-  let of_sk : Tezos_crypto.Signature.secret_key -> t = function
+  let of_sk : Mavryk_crypto.Signature.secret_key -> t = function
     | Ed25519 _ -> ED25519
     | Secp256k1 _ -> SECP256K1
     | P256 _ -> SECP256R1
@@ -140,15 +140,15 @@ end
 
 module Signer = struct
   type t = {
-    mnemonic : Tezos_client_base.Bip39.t;
+    mnemonic : Mavryk_client_base.Bip39.t;
     path : Path.t;
-    pkh : Tezos_crypto.Signature.public_key_hash;
-    pk : Tezos_crypto.Signature.public_key;
-    sk : Tezos_crypto.Signature.secret_key;
+    pkh : Mavryk_crypto.Signature.public_key_hash;
+    pk : Mavryk_crypto.Signature.public_key;
+    sk : Mavryk_crypto.Signature.secret_key;
   }
 
   let make ~mnemonic ~path ~sk =
-    let open Tezos_crypto.Signature in
+    let open Mavryk_crypto.Signature in
     let sk = Secret_key.of_b58check_exn sk in
     let pk = Secret_key.to_public_key sk in
     let pkh = Public_key.hash pk in

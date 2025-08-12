@@ -25,7 +25,7 @@ from ragger.firmware import Firmware
 from ragger.navigator import NavIns, NavInsID
 
 from utils.account import Account
-from utils.backend import TezosBackend, StatusCode
+from utils.backend import MavrykBackend, StatusCode
 from utils.message import (
     MichelineExpr,
     Proposals,
@@ -37,41 +37,41 @@ from utils.message import (
     SetDepositLimit,
     ScRollupAddMessage
 )
-from utils.navigator import TezosNavigator
+from utils.navigator import MavrykNavigator
 
 
 ### Too long operation ###
 
 BASIC_OPERATION = OperationGroup([
     Reveal(
-        source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+        source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
         fee = 1000000,
         counter = 11,
         gas_limit = 1,
         storage_limit = 4,
-        public_key = 'p2pk66m3NQsd4n6LJWe9WMwx9WHeXwKmBaMwXX92WkMQCR99zmwk2PM'
+        public_key = 'p2pk65YHEfEbWo7iMrz7JNjBvaYZNFBHU8vzCQEhw8rmbvAKuiGGiXS'
     ),
     Transaction(
-        source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+        source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
         fee = 2000000,
         counter = 12,
         gas_limit = 1,
         storage_limit = 7,
-        destination = 'tz3XMQscBFM9vPmpbYMavMmwxRMUWvWGZMQQ',
+        destination = 'mv3Thf4FrSnZvQxuep5zM5BcKDZJy6zKZ5VW',
         amount = 3000000,
         entrypoint = 'update_config',
         parameter = {'prim': 'Pair', 'args': [ {'int': 5}, {'prim': 'True'} ]}
     ),
     Delegation(
-        source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+        source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
         fee = 3000000,
         counter = 13,
         gas_limit = 1,
         storage_limit = 5,
-        delegate = 'tz2W3Tvcm64GjcV2bipUynnEsctLFz5Z6yRa'
+        delegate = 'mv2WfoqcNkcNmzWPndNxXqSe6r7vUY5jXt1w'
     ),
     ScRollupAddMessage(
-        source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+        source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
         fee = 4000000,
         counter = 14,
         gas_limit = 1,
@@ -100,7 +100,7 @@ BASIC_OPERATION = OperationGroup([
         ]
     ),
     SetDepositLimit(
-        source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+        source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
         fee = 1000000,
         counter = 15,
         gas_limit = 1,
@@ -110,9 +110,9 @@ BASIC_OPERATION = OperationGroup([
 ])
 
 def test_sign_basic_too_long_operation(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         firmware: Firmware,
-        tezos_navigator: TezosNavigator,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
@@ -120,16 +120,16 @@ def test_sign_basic_too_long_operation(
 
     message = BASIC_OPERATION
 
-    tezos_navigator.toggle_expert_mode()
-    tezos_navigator.toggle_blindsign()
+    mavryk_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_blindsign()
 
     with backend.sign(account, message, with_hash=True) as result:
         if firmware.is_nano:
-            tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "clear_n_too_long_warning")
+            mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "clear_n_too_long_warning")
         else:
-            tezos_navigator.skip_sign(snap_path=snapshot_dir / "skip")
-            tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsign_warning")
-        tezos_navigator.accept_sign(snap_path=snapshot_dir / "summary")
+            mavryk_navigator.skip_sign(snap_path=snapshot_dir / "skip")
+            mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsign_warning")
+        mavryk_navigator.accept_sign(snap_path=snapshot_dir / "summary")
 
     account.check_signature(
         message=message,
@@ -138,65 +138,65 @@ def test_sign_basic_too_long_operation(
     )
 
 def test_reject_basic_too_long_operation_at_warning(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         firmware: Firmware,
-        tezos_navigator: TezosNavigator,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
     """Check reject too long operation at warning"""
 
-    tezos_navigator.toggle_expert_mode()
-    tezos_navigator.toggle_blindsign()
+    mavryk_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_blindsign()
 
     with StatusCode.REJECT.expected():
         with backend.sign(account, BASIC_OPERATION):
             if firmware.is_nano:
-                tezos_navigator.refuse_sign_blindsign_risk(snap_path=snapshot_dir / "clear_n_too_long_warning")
+                mavryk_navigator.refuse_sign_blindsign_risk(snap_path=snapshot_dir / "clear_n_too_long_warning")
             else:
-                tezos_navigator.skip_sign(snap_path=snapshot_dir / "skip")
-                tezos_navigator.refuse_sign_blindsign_risk(snap_path=snapshot_dir / "blindsign_warning")
+                mavryk_navigator.skip_sign(snap_path=snapshot_dir / "skip")
+                mavryk_navigator.refuse_sign_blindsign_risk(snap_path=snapshot_dir / "blindsign_warning")
 
 def test_reject_basic_too_long_operation_at_summary(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         firmware: Firmware,
-        tezos_navigator: TezosNavigator,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
     """Check reject too long operation at summary"""
 
-    tezos_navigator.toggle_expert_mode()
-    tezos_navigator.toggle_blindsign()
+    mavryk_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_blindsign()
 
     with StatusCode.REJECT.expected():
         with backend.sign(account, BASIC_OPERATION):
             if firmware.is_nano:
-                tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "clear_n_too_long_warning")
+                mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "clear_n_too_long_warning")
             else:
-                tezos_navigator.skip_sign(snap_path=snapshot_dir / "skip")
-                tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsign_warning")
-            tezos_navigator.reject_sign(snap_path=snapshot_dir / "summary")
+                mavryk_navigator.skip_sign(snap_path=snapshot_dir / "skip")
+                mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsign_warning")
+            mavryk_navigator.reject_sign(snap_path=snapshot_dir / "summary")
 
 @pytest.mark.use_on_device("touch")
 def test_reject_at_skip(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
     """Check reject at skip."""
 
-    tezos_navigator.toggle_expert_mode()
-    tezos_navigator.toggle_blindsign()
+    mavryk_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_blindsign()
 
     with backend.sign(account, BASIC_OPERATION):
-        tezos_navigator.skip_reject(
+        mavryk_navigator.skip_reject(
             snap_path=snapshot_dir,
             screen_change_after_last_instruction=True,
         )
         # Just to end the flow
-        tezos_navigator.accept_sign(
+        mavryk_navigator.accept_sign(
             screen_change_before_first_instruction=False,
         )
 
@@ -204,80 +204,80 @@ def test_reject_at_skip(
 ### Different kind of too long operation ###
 
 def test_sign_too_long_operation_with_only_transactions(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         firmware: Firmware,
-        tezos_navigator: TezosNavigator,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
     """Check sign too long operation that contains only transaction"""
     message = OperationGroup([
         Transaction(
-            source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+            source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
             fee = 0,
             counter = 11,
             gas_limit = 1,
             storage_limit = 0,
-            destination = 'tz1er74kx433vTtpYddGsf3dDt5piBZeeHyQ',
+            destination = 'mv1GQ3j1iCWq1qw3YMhg6bMUTwH9Rdp3SE8e',
             amount = 10000000
         ),
         Transaction(
-            source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+            source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
             fee = 1000000,
             counter = 12,
             gas_limit = 1,
             storage_limit = 1,
-            destination = 'tz2PPZ2WN4j92Rdx4NM7oW3HAp3x825HUyac',
+            destination = 'mv2M8TeVU9NCfkdzzdxZJhZmTiuMiFoTu3rs',
             amount = 1000000
         ),
         Transaction(
-            source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+            source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
             fee = 2000000,
             counter = 13,
             gas_limit = 1,
             storage_limit = 2,
-            destination = 'tz1Kp8NCAN5WWwvkWkMmQQXMRe68iURmoQ8w',
+            destination = 'mv1BffkEZbfk39B41da8eZCBBebKZPWugUDX',
             amount = 2000000
         ),
         Transaction(
-            source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+            source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
             fee = 3000000,
             counter = 14,
             gas_limit = 1,
             storage_limit = 3,
-            destination = 'tz3fLwHKthqhTPK6Lar6CTXN1WbDETw1YpGB',
+            destination = 'mv3EkfVEWmznKKUhWzUApYJXonS2BxawQBKY',
             amount = 3000000
         ),
         Transaction(
-            source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+            source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
             fee = 4000000,
             counter = 15,
             gas_limit = 1,
             storage_limit = 4,
-            destination = 'tz3eydffbLkjdVb8zx42BvxpGV87zaRnqL3r',
+            destination = 'mv3CvMoFaDEmMA6mufFv7TmxvdtVLkneSngc',
             amount = 4000000
         ),
         Transaction(
-            source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+            source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
             fee = 5000000,
             counter = 16,
             gas_limit = 1,
             storage_limit = 5,
-            destination = 'tz2JPgTWZZpxZZLqHMfS69UAy1UHm4Aw5iHu',
+            destination = 'mv2X4QWis6hXdqvo75GLK7r8CHLcUgVrQH85',
             amount = 5000000
         )
     ])
 
-    tezos_navigator.toggle_expert_mode()
-    tezos_navigator.toggle_blindsign()
+    mavryk_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_blindsign()
 
     with backend.sign(account, message, with_hash=True) as result:
         if firmware.is_nano:
-            tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "clear_n_too_long_warning")
+            mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "clear_n_too_long_warning")
         else:
-            tezos_navigator.skip_sign(snap_path=snapshot_dir / "skip")
-            tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsign_warning")
-        tezos_navigator.accept_sign(snap_path=snapshot_dir / "summary")
+            mavryk_navigator.skip_sign(snap_path=snapshot_dir / "skip")
+            mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsign_warning")
+        mavryk_navigator.accept_sign(snap_path=snapshot_dir / "summary")
 
     account.check_signature(
         message=message,
@@ -285,51 +285,37 @@ def test_sign_too_long_operation_with_only_transactions(
         data=result.value
     )
 
+@pytest.mark.skip(reason="Mavryk has fewer proposals than Tezos, not enough to trigger blind signing. Will be re-enabled when Mavryk has more proposals.")
 def test_sign_too_long_operation_without_fee_or_amount(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         firmware: Firmware,
-        tezos_navigator: TezosNavigator,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
     """Check sign too long operation that doesn't have fees or amount"""
     message = Proposals(
-        source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+        source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
         proposals = [
             'ProtoDemoNoopsDemoNoopsDemoNoopsDemoNoopsDemo6XBoYp',
             'ProtoGenesisGenesisGenesisGenesisGenesisGenesk612im',
-            'PrihK96nBAFSxVL1GLJTVhu9YnzkMFiBeuJRPA8NwuZVZCE1L6i',
-            'Ps9mPmXaRzmzk35gbAYNCAw6UXdE2qoABTHbN2oEEc1qM7CwT9P',
-            'PsBabyM1eUXZseaJdmXFApDSBqj8YBfwELoxZHHW77EMcAbbwAS',
-            'PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb',
-            'PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo',
-            'PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA',
-            'PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i',
-            'PtGRANADsDU8R9daYKAgWnQYAJ64omN1o3KMGVCykShA97vQbvV',
-            'PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx',
-            'Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A',
-            'PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY',
-            'PtKathmankSpLLDALzWw7CGD2j2MtyveTwboEYokqUCP4a1LxMg',
-            'PtLimaPtLMwfNinJi9rCfDPWea8dFgTZ1MeJ9f1m2SRic6ayiwW',
-            'PtMumbai2TmsJHNGRkD8v8YDbtao7BLUC3wjASn1inAKLFCjaH1',
-            'PtNairobiyssHuh87hEhfVBGCVrK3WnS8Z2FT4ymB5tAa4r1nQf',
-            'ProxfordYmVfjWnRcgjWH36fW6PArwqykTFzotUxRs6gmTcZDuH',
-            'PtParisBxoLz5gzMmn3d9WBQNoPSZakgnkMC2VNuQ3KXfUtUQeZ',
+            'PtAtLasomUEW99aVhVTrqjCHjJSpFUa8uHNEAEamx9v2SNeTaNp',
+            'Ps8tUpcuzKw4cTeFT2wJXNCLa9pxkBUWZFDAvb9CXmnAuRE4bzF',
             'ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK'
         ],
         period = 32
     )
 
-    tezos_navigator.toggle_expert_mode()
-    tezos_navigator.toggle_blindsign()
+    mavryk_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_blindsign()
 
     with backend.sign(account, message, with_hash=True) as result:
         if firmware.is_nano:
-            tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "clear_n_too_long_warning")
+            mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "clear_n_too_long_warning")
         else:
-            tezos_navigator.skip_sign(snap_path=snapshot_dir / "skip")
-            tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsign_warning")
-        tezos_navigator.accept_sign(snap_path=snapshot_dir / "summary")
+            mavryk_navigator.skip_sign(snap_path=snapshot_dir / "skip")
+            mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsign_warning")
+        mavryk_navigator.accept_sign(snap_path=snapshot_dir / "summary")
 
     account.check_signature(
         message=message,
@@ -342,7 +328,7 @@ def test_sign_too_long_operation_without_fee_or_amount(
 
 OPERATION_WITH_TOO_LARGE = OperationGroup([
     ScRollupAddMessage(
-        source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+        source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
         fee = 4000000,
         counter = 11,
         gas_limit = 1,
@@ -381,7 +367,7 @@ OPERATION_WITH_TOO_LARGE = OperationGroup([
         ]
     ),
     RegisterGlobalConstant(
-        source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+        source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
         fee = 5000000,
         counter = 12,
         gas_limit = 1,
@@ -391,9 +377,9 @@ OPERATION_WITH_TOO_LARGE = OperationGroup([
 ])
 
 def test_sign_too_long_operation_with_too_large(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         firmware: Firmware,
-        tezos_navigator: TezosNavigator,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
@@ -401,17 +387,17 @@ def test_sign_too_long_operation_with_too_large(
 
     message = OPERATION_WITH_TOO_LARGE
 
-    tezos_navigator.toggle_expert_mode()
-    tezos_navigator.toggle_blindsign()
+    mavryk_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_blindsign()
 
     with backend.sign(account, message, with_hash=True) as result:
         if firmware.is_nano:
-            tezos_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "clear_n_too_large_warning")
+            mavryk_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "clear_n_too_large_warning")
         else:
-            tezos_navigator.skip_sign(snap_path=snapshot_dir / "skip")
-            tezos_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "too_large_warning")
-            tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsign_warning")
-        tezos_navigator.accept_sign(snap_path=snapshot_dir / "blindsigning")
+            mavryk_navigator.skip_sign(snap_path=snapshot_dir / "skip")
+            mavryk_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "too_large_warning")
+            mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsign_warning")
+        mavryk_navigator.accept_sign(snap_path=snapshot_dir / "blindsigning")
 
     account.check_signature(
         message=message,
@@ -420,36 +406,36 @@ def test_sign_too_long_operation_with_too_large(
     )
 
 def test_reject_too_long_operation_with_too_large_at_too_large_warning(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         firmware: Firmware,
-        tezos_navigator: TezosNavigator,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
     """Check reject too long operation that will also fail the parsing at too large warning"""
 
-    tezos_navigator.toggle_expert_mode()
-    tezos_navigator.toggle_blindsign()
+    mavryk_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_blindsign()
 
     with StatusCode.PARSE_ERROR.expected():
         with backend.sign(account, OPERATION_WITH_TOO_LARGE):
             if firmware.is_nano:
-                tezos_navigator.refuse_sign_error_risk(snap_path=snapshot_dir / "clear_n_too_large_warning")
+                mavryk_navigator.refuse_sign_error_risk(snap_path=snapshot_dir / "clear_n_too_large_warning")
             else:
-                tezos_navigator.skip_sign(snap_path=snapshot_dir / "skip")
-                tezos_navigator.refuse_sign_error_risk(snap_path=snapshot_dir / "too_large_warning")
+                mavryk_navigator.skip_sign(snap_path=snapshot_dir / "skip")
+                mavryk_navigator.refuse_sign_error_risk(snap_path=snapshot_dir / "too_large_warning")
 
 def test_reject_too_long_operation_with_too_large_at_blindsigning(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         firmware: Firmware,
-        tezos_navigator: TezosNavigator,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
     """Check reject too long operation that will also fail the parsing at blindsigning"""
 
-    tezos_navigator.toggle_expert_mode()
-    tezos_navigator.toggle_blindsign()
+    mavryk_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_blindsign()
 
     if firmware.is_nano:
         error = StatusCode.REJECT
@@ -459,35 +445,35 @@ def test_reject_too_long_operation_with_too_large_at_blindsigning(
     with error.expected():
         with backend.sign(account, OPERATION_WITH_TOO_LARGE):
             if firmware.is_nano:
-                tezos_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "clear_n_too_large_warning")
+                mavryk_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "clear_n_too_large_warning")
             else:
-                tezos_navigator.skip_sign(snap_path=snapshot_dir / "skip")
-                tezos_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "too_large_warning")
-                tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsigning_warning")
-            tezos_navigator.reject_sign(snap_path=snapshot_dir / "blindsigning")
+                mavryk_navigator.skip_sign(snap_path=snapshot_dir / "skip")
+                mavryk_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "too_large_warning")
+                mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsigning_warning")
+            mavryk_navigator.reject_sign(snap_path=snapshot_dir / "blindsigning")
 
 @pytest.mark.use_on_device("touch")
 def test_reject_too_long_operation_with_too_large_at_blindsigning_warning(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
     """Check reject too long operation that will also fail the parsing at blindsigning"""
 
-    tezos_navigator.toggle_expert_mode()
-    tezos_navigator.toggle_blindsign()
+    mavryk_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_blindsign()
 
     with StatusCode.PARSE_ERROR.expected():
         with backend.sign(account, OPERATION_WITH_TOO_LARGE):
-            tezos_navigator.skip_sign(snap_path=snapshot_dir / "skip")
-            tezos_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "too_large_warning")
-            tezos_navigator.refuse_sign_blindsign_risk(snap_path=snapshot_dir / "blindsigning_warning")
+            mavryk_navigator.skip_sign(snap_path=snapshot_dir / "skip")
+            mavryk_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "too_large_warning")
+            mavryk_navigator.refuse_sign_blindsign_risk(snap_path=snapshot_dir / "blindsigning_warning")
 
 def test_blindsign_too_deep(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         firmware: Firmware,
-        tezos_navigator: TezosNavigator,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path):
     """Check blindsigning on too deep expression"""
@@ -509,18 +495,18 @@ def test_blindsign_too_deep(
                 NavInsID.BOTH_CLICK,
             ]
 
-            tezos_navigator.unsafe_navigate(
+            mavryk_navigator.unsafe_navigate(
                 instructions=instructions,
                 screen_change_before_first_instruction=True,
                 screen_change_after_last_instruction=False,
                 snap_path=snapshot_dir / "clear",
             )
         else:
-            tezos_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "clear")
+            mavryk_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "clear")
             if not firmware.is_nano:
-                tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsigning_warning")
+                mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsigning_warning")
 
-        tezos_navigator.accept_sign(snap_path=snapshot_dir / "blind")
+        mavryk_navigator.accept_sign(snap_path=snapshot_dir / "blind")
 
     account.check_signature(
         message=expression,
@@ -529,9 +515,9 @@ def test_blindsign_too_deep(
     )
 
 def test_blindsign_too_large(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         firmware: Firmware,
-        tezos_navigator: TezosNavigator,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
@@ -540,10 +526,10 @@ def test_blindsign_too_large(
     message = MichelineExpr({'int':12345678901234567890123456789012345678901234567890123456789012345678901234567890})
 
     with backend.sign(account, message, with_hash=True) as result:
-        tezos_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "clear")
+        mavryk_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "clear")
         if not firmware.is_nano:
-            tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsigning_warning")
-        tezos_navigator.accept_sign(snap_path=snapshot_dir / "blind")
+            mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blindsigning_warning")
+        mavryk_navigator.accept_sign(snap_path=snapshot_dir / "blind")
 
     account.check_signature(
         message=message,
@@ -552,8 +538,8 @@ def test_blindsign_too_large(
     )
 
 def test_blindsign_reject_from_clear(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
@@ -563,12 +549,12 @@ def test_blindsign_reject_from_clear(
 
     with StatusCode.PARSE_ERROR.expected():
         with backend.sign(account, expression):
-            tezos_navigator.refuse_sign_error_risk(snap_path=snapshot_dir)
+            mavryk_navigator.refuse_sign_error_risk(snap_path=snapshot_dir)
 
 def test_blindsign_reject_from_blind(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         firmware: Firmware,
-        tezos_navigator: TezosNavigator,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
@@ -583,26 +569,26 @@ def test_blindsign_reject_from_blind(
 
     with error.expected():
         with backend.sign(account, expression, with_hash=False):
-            tezos_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "clear")
+            mavryk_navigator.accept_sign_error_risk(snap_path=snapshot_dir / "clear")
             if not firmware.is_nano:
-                tezos_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blind_warning")
-            tezos_navigator.reject_sign(snap_path=snapshot_dir / "blind")
+                mavryk_navigator.accept_sign_blindsign_risk(snap_path=snapshot_dir / "blind_warning")
+            mavryk_navigator.reject_sign(snap_path=snapshot_dir / "blind")
 
 def test_ensure_always_clearsign(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         firmware: Firmware,
-        tezos_navigator: TezosNavigator,
+        mavryk_navigator: MavrykNavigator,
         account: Account,
         snapshot_dir: Path
 ):
     """Check clear signing never blindsign"""
 
-    tezos_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_expert_mode()
     if not firmware.is_nano:
-        tezos_navigator.toggle_blindsign()
+        mavryk_navigator.toggle_blindsign()
 
     message = Transaction(
-        source = 'tz1ixvCiPJYyMjsp2nKBVaq54f6AdbV8hCKa',
+        source = 'mv1P8PBEjfFUb7EeHNBUa92vNHnJmvzUmhxb',
         fee = 10000,
         counter = 2,
         gas_limit = 3,
@@ -614,7 +600,7 @@ def test_ensure_always_clearsign(
     )
 
     with backend.sign(account, message, with_hash=True) as result:
-        tezos_navigator.accept_sign(snap_path=snapshot_dir)
+        mavryk_navigator.accept_sign(snap_path=snapshot_dir)
 
     account.check_signature(
         message=message,

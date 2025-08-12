@@ -35,7 +35,7 @@
 #include "parser/num_parser.h"
 
 // based on app-exchange
-#define TICKER           "XTZ"
+#define TICKER           "MVRK"
 #define ADDRESS_MAX_SIZE 63
 /* the smallest unit is microtez */
 #define DECIMALS         6
@@ -47,7 +47,7 @@
 void
 swap_handle_check_address(check_address_parameters_t *params)
 {
-    TZ_PREAMBLE(("params=%p", params));
+    MV_PREAMBLE(("params=%p", params));
 
     if (params->address_to_check == NULL) {
         PRINTF("[ERROR] Address to check is null\n");
@@ -60,19 +60,19 @@ swap_handle_check_address(check_address_parameters_t *params)
         goto bail;
     }
 
-    char address[TZ_CAPTURE_BUFFER_SIZE] = {0};
+    char address[MV_CAPTURE_BUFFER_SIZE] = {0};
 
-    // Always tz1
+    // Always mv1
     derivation_type_t derivation_type = DERIVATION_TYPE_ED25519;
     bip32_path_t      bip32_path;
     buffer_t          cdata = {.ptr    = params->address_parameters,
                                .size   = params->address_parameters_length,
                                .offset = 0u};
 
-    TZ_LIB_CHECK(read_bip32_path(&bip32_path, &cdata));
+    MV_LIB_CHECK(read_bip32_path(&bip32_path, &cdata));
     cx_ecfp_public_key_t pubkey;
-    TZ_LIB_CHECK(derive_pk(&pubkey, derivation_type, &bip32_path));
-    TZ_LIB_CHECK(
+    MV_LIB_CHECK(derive_pk(&pubkey, derivation_type, &bip32_path));
+    MV_LIB_CHECK(
         derive_pkh(&pubkey, derivation_type, address, sizeof(address)));
     if (strcmp(params->address_to_check, address) != 0) {
         PRINTF("[ERROR] Check address fail: %s !=  %s\n",
@@ -188,13 +188,13 @@ error:
 void
 swap_check_validity(void)
 {
-    tz_operation_state *op
+    mv_operation_state *op
         = &global.keys.apdu.sign.u.clear.parser_state.operation;
     char dstaddr[ADDRESS_MAX_SIZE];
-    TZ_PREAMBLE((""));
+    MV_PREAMBLE((""));
 
     if (!G_called_from_swap) {
-        TZ_SUCCEED();
+        MV_SUCCEED();
     }
 
     if (G_swap_response_ready) {
@@ -204,20 +204,20 @@ swap_check_validity(void)
 
     PRINTF("[DEBUG] batch_index = %u, nb_reveal=%d, tag=%d\n",
            op->batch_index, op->nb_reveal, op->last_tag);
-    TZ_ASSERT(EXC_REJECT, op->nb_reveal <= 1);
-    TZ_ASSERT(EXC_REJECT, (op->batch_index - op->nb_reveal) == 1);
-    TZ_ASSERT(EXC_REJECT, op->last_tag == TZ_OPERATION_TAG_TRANSACTION);
-    TZ_ASSERT(EXC_REJECT, op->total_amount == G_swap_params.amount);
-    TZ_ASSERT(EXC_REJECT, op->total_fee == G_swap_params.fee);
+    MV_ASSERT(EXC_REJECT, op->nb_reveal <= 1);
+    MV_ASSERT(EXC_REJECT, (op->batch_index - op->nb_reveal) == 1);
+    MV_ASSERT(EXC_REJECT, op->last_tag == MV_OPERATION_TAG_TRANSACTION);
+    MV_ASSERT(EXC_REJECT, op->total_amount == G_swap_params.amount);
+    MV_ASSERT(EXC_REJECT, op->total_fee == G_swap_params.fee);
 
-    tz_format_address(op->destination, 22, dstaddr, sizeof(dstaddr));
+    mv_format_address(op->destination, 22, dstaddr, sizeof(dstaddr));
 
     PRINTF("[DEBUG] dstaddr=\"%s\"\n", dstaddr);
     PRINTF("[DEBUG] G...dstaddr=\"%s\"\n", G_swap_params.destination_address);
-    TZ_ASSERT(EXC_REJECT,
+    MV_ASSERT(EXC_REJECT,
               !strcmp(dstaddr, G_swap_params.destination_address));
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 
 /* Set create_transaction.result and call os_lib_end().

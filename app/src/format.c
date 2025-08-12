@@ -1,4 +1,4 @@
-/* Tezos Ledger application - Tezos-specific formatting function set
+/* Tezos Ledger application - Mavryk-specific formatting function set
 
    Copyright 2024 Functori <contact@functori.com>
 
@@ -23,13 +23,13 @@
 #include "format.h"
 
 bool
-tz_mutez_to_string(char *obuf, size_t olen, uint64_t amount)
+mv_mumav_to_string(char *obuf, size_t olen, uint64_t amount)
 {
     if (!format_fpu64_trimmed(obuf, olen, amount, 6 /*DECIMALS*/)) {
         memset(obuf, '\0', olen);
         return false;
     }
 
-    strlcat(obuf, " XTZ", olen);
+    strlcat(obuf, " MVRK", olen);
     return true;
 }

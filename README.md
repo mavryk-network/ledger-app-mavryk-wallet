@@ -1,4 +1,4 @@
-# Tezos Ledger Wallet App
+# Mavryk Ledger Wallet App
 
 ## Interfaces
 
@@ -136,7 +136,7 @@ First, start a container for running individual tests:
 
 ```sh
 docker run --rm -it --entrypoint /bin/bash -v $(pwd):/app --network host \
-  ledger-app-tezos-integration-tests
+  ledger-app-mavryk-integration-tests
 
 cd /app
 
@@ -165,26 +165,62 @@ pytest tests/integration/python/<test_name>.py \
 
 You can reset/set goldimages using the `--golden-run` option
 
+**Regenerating All Snapshots**
+
+To regenerate all snapshot images (useful after UI changes), use the comprehensive script:
+
+```sh
+# Regenerate ALL snapshots for ALL devices
+./regenerate-all-snapshots.sh
+```
+
+This script will:
+- Process all devices: nanos, nanosp, nanox, stax, flex
+- Run multiple iterations per device to gradually build up all snapshots
+- Stop automatically when no significant improvement is made
+- Provide detailed progress and statistics
+- Handle the fact that tests stop on first snapshot mismatch
+
+**Alternative: Single device with Makefile**
+```sh
+make regenerate_snapshots_nanosp  # For Nano S+
+make regenerate_snapshots_nanos   # For Nano S
+make regenerate_snapshots_nanox   # For Nano X
+make regenerate_snapshots_stax    # For Stax
+make regenerate_snapshots_flex    # For Flex
+```
+
+**Note:** The comprehensive script handles the fact that tests stop generating snapshots after the first image mismatch within a test. It runs multiple iterations to gradually build up all snapshots across all devices.
+
+**Cleaning Snapshots**
+
+To clean up snapshots before regenerating:
+```sh
+rm -rf tests/integration/python/snapshots-tmp
+rm -rf tests/integration/python/snapshots
+mkdir -p tests/integration/python/snapshots
+```
+
 ## Swap test
 
 ### Requirement
 
-Our swap tests are located in the https://github.com/functori/app-exchange repository.
+Our swap tests are located in the https://github.com/mavryk-network/app-exchange repository.
 You must have a clone of this repository. In the commands below, it must be referenced in the `APP_EXCHANGE_REPO` variable.
 
 In some of the commands below, other variables will be required:
-- `APP_TEZOS_REPO`: your clone of the https://github.com/trilitech/ledger-app-tezos-wallet repository
+- `APP_MAVRYK_REPO`: your clone of the https://github.com/mavryk-network/ledger-app-mavryk-wallet repository
 - `APP_ETH_REPO`: your clone of the https://github.com/LedgerHQ/app-ethereum repository
 The commands below will consider the version of the current branch of each repository.
 
 ### Preparation
 
-Make sure that the Tezos, Ethereum, and Exchange apps are built and set up correctly in the app-exchange repository.
+Make sure that the Mavryk, Ethereum, and Exchange apps are built and set up correctly in the app-exchange repository.
 If not, run :
 ```sh
 ./scripts/test_swap.sh build_app_exchange $DEVICE
 ./scripts/test_swap.sh build_app_ethereum $DEVICE
-./scripts/test_swap.sh build_app_tezos    $DEVICE
+./scripts/test_swap.sh build_app_mavryk   $DEVICE
 ```
 
 ### Running
@@ -205,7 +241,7 @@ You can run :
 ```sh
 ./scripts/test_swap.sh update $DEVICE
 ```
-to perform all snapshot update steps based on your current Tezos repository.
+to perform all snapshot update steps based on your current Mavryk repository.
 
 ## Contributing
 

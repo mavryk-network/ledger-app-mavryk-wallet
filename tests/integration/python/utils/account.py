@@ -17,9 +17,9 @@
 from enum import IntEnum
 from typing import Union
 
-from pytezos import pytezos
-from pytezos.crypto.encoding import base58_encode
-from pytezos.crypto.key import Key as PytezosKey
+from pymavryk import pymavryk
+from pymavryk.crypto.encoding import base58_encode
+from pymavryk.crypto.key import Key as PymavrykKey
 from ragger.bip import pack_derivation_path
 
 from .message import Message
@@ -173,9 +173,9 @@ class Account:
         return self.__key
 
     @property
-    def key(self) -> PytezosKey:
-        """pytezos key of the account."""
-        return pytezos.using(key=self.__key).key
+    def key(self) -> PymavrykKey:
+        """pymavryk key of the account."""
+        return pymavryk.using(key=self.__key).key
 
     def check_signature(
             self,
@@ -199,7 +199,7 @@ class Account:
 DEFAULT_SEED = ' '.join(['zebra']*24)
 
 DEFAULT_ACCOUNT = Account(
-    "m/44'/1729'/0'/0'",
+    "m/44'/1969'/0'/0'",
     SigType.ED25519,
-    "edpkuXX2VdkdXzkN11oLCb8Aurdo1BTAtQiK8ZY9UPj2YMt3AHEpcY"
+    "edpktmumZ4vUDvg7VNFh5sGeSCnT7xYXhmzP2jwsiUUpUnQGoGfnja"
 )

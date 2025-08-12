@@ -3,7 +3,8 @@ setuptools
 pkginfo
 cryptography
 base58
-pytezos==3.14.0
+python-dateutil==2.8.2
+pymavryk @ git+https://github.com/mavryk-network/pymavryk@v3.14.0-rc1
 GitPython
 pytest-xdist
 ragger[tests,speculos,ledgerwallet]==1.24.0

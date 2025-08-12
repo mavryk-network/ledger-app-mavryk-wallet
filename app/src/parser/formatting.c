@@ -1,4 +1,4 @@
-/* Tezos Embedded C parser for Ledger - Human printing of Tezos formats
+/* Mavryk Embedded C parser for Ledger - Human printing of Mavryk formats
 
    Copyright 2023 Nomadic Labs <contact@nomadic-labs.com>
 
@@ -21,12 +21,12 @@
  *
  * Should be kept in sync with the last protocol update, including
  * order, currently defined in the `michelson_v1_primitives.ml` file
- * in the Tezos protocol code.
+ * in the Mavryk protocol code.
  *
  * NEVER REORDER elements of this array as the index is used as a
  * selector by `michelson_op_name`.
  */
-const char *const tz_michelson_op_names_ordered[TZ_LAST_MICHELSON_OPCODE + 1]
+const char *const mv_michelson_op_names_ordered[MV_LAST_MICHELSON_OPCODE + 1]
     = {
         "parameter",                       // 0
         "storage",                         // 1
@@ -134,7 +134,7 @@ const char *const tz_michelson_op_names_ordered[TZ_LAST_MICHELSON_OPCODE + 1]
         "signature",                       // 103
         "string",                          // 104
         "bytes",                           // 105
-        "mutez",                           // 106
+        "mumav",                           // 106
         "timestamp",                       // 107
         "unit",                            // 108
         "operation",                       // 109
@@ -175,7 +175,7 @@ const char *const tz_michelson_op_names_ordered[TZ_LAST_MICHELSON_OPCODE + 1]
         "VIEW",                            // 144
         "view",                            // 145
         "constant",                        // 146
-        "SUB_MUTEZ",                       // 147
+        "SUB_MUMAV",                       // 147
         "tx_rollup_l2_address",            // 148
         "MIN_BLOCK_TIME",                  // 149
         "sapling_transaction",             // 150
@@ -189,12 +189,12 @@ const char *const tz_michelson_op_names_ordered[TZ_LAST_MICHELSON_OPCODE + 1]
 };
 
 const char *
-tz_michelson_op_name(uint8_t op_code)
+mv_michelson_op_name(uint8_t op_code)
 {
-    if (op_code > TZ_LAST_MICHELSON_OPCODE) {
+    if (op_code > MV_LAST_MICHELSON_OPCODE) {
         return NULL;
     }
-    return PIC(tz_michelson_op_names_ordered[op_code]);
+    return PIC(mv_michelson_op_names_ordered[op_code]);
 }
 
 /*
@@ -207,7 +207,7 @@ tz_michelson_op_name(uint8_t op_code)
  * under the terms of the standard MIT license.
  */
 
-static const char tz_b58digits_ordered[]
+static const char mv_b58digits_ordered[]
     = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 /**
@@ -220,13 +220,13 @@ static const char tz_b58digits_ordered[]
  * @return int: 0 on success
  */
 int
-tz_format_base58(const uint8_t *n, size_t l, char *obuf, size_t olen)
+mv_format_base58(const uint8_t *n, size_t l, char *obuf, size_t olen)
 {
     int    carry;
-    size_t i, j, high, zcount = 0, obuf_len = TZ_BASE58_BUFFER_SIZE(l);
+    size_t i, j, high, zcount = 0, obuf_len = MV_BASE58_BUFFER_SIZE(l);
 
     if (olen < obuf_len) {
-        PRINTF("[DEBUG] tz_format_base58() called with %u obuf need %u\n",
+        PRINTF("[DEBUG] mv_format_base58() called with %u obuf need %u\n",
                olen, obuf_len);
         return 1;
     }
@@ -254,20 +254,20 @@ tz_format_base58(const uint8_t *n, size_t l, char *obuf, size_t olen)
         // Find the last index of obuf
     }
     for (i = 0; j < obuf_len; ++i, ++j) {
-        obuf[i] = tz_b58digits_ordered[(unsigned)obuf[j]];
+        obuf[i] = mv_b58digits_ordered[(unsigned)obuf[j]];
     }
     obuf[i] = '\0';
     return 0;
 }
 
 int
-tz_format_decimal(const uint8_t *n, size_t l, char *obuf, size_t olen)
+mv_format_decimal(const uint8_t *n, size_t l, char *obuf, size_t olen)
 {
     int    carry;
-    size_t i, j, high, zcount = 0, obuf_len = TZ_DECIMAL_BUFFER_SIZE(l);
+    size_t i, j, high, zcount = 0, obuf_len = MV_DECIMAL_BUFFER_SIZE(l);
 
     if (olen < obuf_len) {
-        PRINTF("[DEBUG] tz_format_base58() called with %u obuf need %u\n",
+        PRINTF("[DEBUG] mv_format_base58() called with %u obuf need %u\n",
                olen, obuf_len);
         return 1;
     }
@@ -303,7 +303,7 @@ tz_format_decimal(const uint8_t *n, size_t l, char *obuf, size_t olen)
 }
 
 #ifndef ACTUALLY_ON_LEDGER
-// Tezos links with digestif's C hashing functions, but the OPAM
+// Mavryk links with digestif's C hashing functions, but the OPAM
 // package does not publish their C header file for others to use, so
 // we are forced to piggy import the external definitions in order to
 // access them.
@@ -398,7 +398,7 @@ static int
 find_prefix(const char *s, const uint8_t **p, size_t *pl, size_t dl)
 {
 
-    /* For tz_format_hash */
+    /* For mv_format_hash */
 
     B58_PREFIX("B",     "\x01\x34",         2, 32);
     B58_PREFIX("o",     "\x05\x74",         2, 32);
@@ -407,10 +407,10 @@ find_prefix(const char *s, const uint8_t **p, size_t *pl, size_t dl)
 
     /* Public key hashes */
 
-    B58_PREFIX("tz1",  "\x06\xa1\x9f",     3, 20);
-    B58_PREFIX("tz2",  "\x06\xa1\xa1",     3, 20);
-    B58_PREFIX("tz3",  "\x06\xa1\xa4",     3, 20);
-    B58_PREFIX("tz4",  "\x06\xa1\xa6",     3, 20);
+    B58_PREFIX("mv1",  "\x05\xBA\xC4",     3, 20);
+    B58_PREFIX("mv2",  "\x05\xBA\xC7",     3, 20);
+    B58_PREFIX("mv3",  "\x05\xBA\xC9",     3, 20);
+    B58_PREFIX("mv4",  "\x05\xBA\xCC",     3, 20);
 
     /* Public keys */
 
@@ -419,7 +419,7 @@ find_prefix(const char *s, const uint8_t **p, size_t *pl, size_t dl)
     B58_PREFIX("p2pk", "\x03\xb2\x8b\x7f", 4, 33);
     B58_PREFIX("BLpk", "\x06\x95\x87\xcc", 4, 48);
 
-    /* For tz_format_address */
+    /* For mv_format_address */
 
     B58_PREFIX("KT1",  "\x02\x5a\x79",     3, 20);
     B58_PREFIX("txr1", "\x01\x80\x78\x1f", 4, 20);
@@ -438,7 +438,7 @@ find_prefix(const char *s, const uint8_t **p, size_t *pl, size_t dl)
 // clang-format on
 
 int
-tz_format_base58check(const char *sprefix, const uint8_t *data, size_t size,
+mv_format_base58check(const char *sprefix, const uint8_t *data, size_t size,
                       char *obuf, size_t olen)
 {
     const uint8_t *prefix = NULL;
@@ -452,7 +452,7 @@ tz_format_base58check(const char *sprefix, const uint8_t *data, size_t size,
     uint8_t prepared[64];
     if ((prefix_len + size + 4) > sizeof(prepared)) {
         PRINTF(
-            "[WARNING] tz_format_base58check() failed: fixed size "
+            "[WARNING] mv_format_base58check() failed: fixed size "
             "array is too small need: %u\n",
             prefix_len + size + 4);
         return 1;
@@ -464,11 +464,11 @@ tz_format_base58check(const char *sprefix, const uint8_t *data, size_t size,
     cx_hash_sha256(prepared, size + prefix_len, tmp, 32);
     cx_hash_sha256(tmp, 32, tmp, 32);
     memcpy(prepared + size + prefix_len, tmp, 4);
-    return tz_format_base58(prepared, prefix_len + size + 4, obuf, olen);
+    return mv_format_base58(prepared, prefix_len + size + 4, obuf, olen);
 }
 
 int
-tz_format_pkh(const uint8_t *data, size_t size, char *obuf, size_t olen)
+mv_format_pkh(const uint8_t *data, size_t size, char *obuf, size_t olen)
 {
     const char *prefix;
 
@@ -477,19 +477,19 @@ tz_format_pkh(const uint8_t *data, size_t size, char *obuf, size_t olen)
     }
     // clang-format off
     switch (data[0]) {
-    case 0:  prefix = "tz1"; break;
-    case 1:  prefix = "tz2"; break;
-    case 2:  prefix = "tz3"; break;
-    case 3:  prefix = "tz4"; break;
+    case 0:  prefix = "mv1"; break;
+    case 1:  prefix = "mv2"; break;
+    case 2:  prefix = "mv3"; break;
+    case 3:  prefix = "mv4"; break;
     default: return 1;
     }
     // clang-format on
 
-    return tz_format_base58check(prefix, data + 1, size - 1, obuf, olen);
+    return mv_format_base58check(prefix, data + 1, size - 1, obuf, olen);
 }
 
 int
-tz_format_pk(const uint8_t *data, size_t size, char *obuf, size_t olen)
+mv_format_pk(const uint8_t *data, size_t size, char *obuf, size_t olen)
 {
     const char *prefix;
 
@@ -506,23 +506,23 @@ tz_format_pk(const uint8_t *data, size_t size, char *obuf, size_t olen)
     }
     // clang-format on
 
-    return tz_format_base58check(prefix, data + 1, size - 1, obuf, olen);
+    return mv_format_base58check(prefix, data + 1, size - 1, obuf, olen);
 }
 
 int
-tz_format_oph(const uint8_t *data, size_t size, char *obuf, size_t olen)
+mv_format_oph(const uint8_t *data, size_t size, char *obuf, size_t olen)
 {
-    return tz_format_base58check("o", data, size, obuf, olen);
+    return mv_format_base58check("o", data, size, obuf, olen);
 }
 
 int
-tz_format_bh(const uint8_t *data, size_t size, char *obuf, size_t olen)
+mv_format_bh(const uint8_t *data, size_t size, char *obuf, size_t olen)
 {
-    return tz_format_base58check("B", data, size, obuf, olen);
+    return mv_format_base58check("B", data, size, obuf, olen);
 }
 
 int
-tz_format_address(const uint8_t *data, size_t size, char *obuf, size_t olen)
+mv_format_address(const uint8_t *data, size_t size, char *obuf, size_t olen)
 {
     const char *prefix;
 
@@ -536,10 +536,10 @@ tz_format_address(const uint8_t *data, size_t size, char *obuf, size_t olen)
     case 3:  prefix = "scr1"; break;
     case 4:  prefix = "zkr1"; break;
 
-    case 0:  return tz_format_pkh(data+1, size-1, obuf, olen);
+    case 0:  return mv_format_pkh(data+1, size-1, obuf, olen);
     default: return 1;
     }
     // clang-format on
 
-    return tz_format_base58check(prefix, data + 1, size - 2, obuf, olen);
+    return mv_format_base58check(prefix, data + 1, size - 2, obuf, olen);
 }

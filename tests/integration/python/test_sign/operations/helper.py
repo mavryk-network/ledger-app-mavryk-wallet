@@ -26,9 +26,9 @@ from ragger.firmware import Firmware
 from ragger.navigator import NavIns, NavInsID, BaseNavInsID
 
 from utils.account import Account
-from utils.backend import TezosBackend
+from utils.backend import MavrykBackend
 from utils.message import Operation
-from utils.navigator import TezosNavigator, TezosNavInsID
+from utils.navigator import MavrykNavigator, MavrykNavInsID
 
 
 Op = TypeVar('Op', bound=Operation)
@@ -167,8 +167,8 @@ class TestOperation(ABC):
 
     def test_sign_operation(
             self,
-            backend: TezosBackend,
-            tezos_navigator: TezosNavigator,
+            backend: MavrykBackend,
+            mavryk_navigator: MavrykNavigator,
             account: Account
     ):
         """Check signing:
@@ -181,10 +181,10 @@ class TestOperation(ABC):
 
         message = self.op_class()
 
-        tezos_navigator.toggle_expert_mode()
+        mavryk_navigator.toggle_expert_mode()
 
         with backend.sign(account, message, with_hash=True) as result:
-            tezos_navigator.accept_sign()
+            mavryk_navigator.accept_sign()
 
         account.check_signature(
             message=message,
@@ -194,8 +194,8 @@ class TestOperation(ABC):
 
     def test_operation_flow(
             self,
-            backend: TezosBackend,
-            tezos_navigator: TezosNavigator,
+            backend: MavrykBackend,
+            mavryk_navigator: MavrykNavigator,
             account: Account,
             fields: Dict[str, Any],
             snapshot_dir: Path
@@ -207,16 +207,16 @@ class TestOperation(ABC):
         """
         message = self.op_class(**fields)
 
-        tezos_navigator.toggle_expert_mode()
+        mavryk_navigator.toggle_expert_mode()
 
         with backend.sign(account, message):
-            tezos_navigator.accept_sign(snap_path=snapshot_dir)
+            mavryk_navigator.accept_sign(snap_path=snapshot_dir)
 
     def test_operation_field(
             self,
-            backend: TezosBackend,
+            backend: MavrykBackend,
             firmware: Firmware,
-            tezos_navigator: TezosNavigator,
+            mavryk_navigator: MavrykNavigator,
             account: Account,
             field: Field,
             case_: Field.Case,
@@ -233,21 +233,21 @@ class TestOperation(ABC):
         fields[field.name] = case_.value
         operation = self.op_class(**fields)
 
-        tezos_navigator.toggle_expert_mode()
+        mavryk_navigator.toggle_expert_mode()
 
         with backend.sign(account, operation):
             validation_instructions: List[Union[NavIns, BaseNavInsID]] = []
             if firmware.is_nano:
                 validation_instructions = [NavInsID.RIGHT_CLICK]
             # Navigates until fields
-            tezos_navigator.navigate_forward(
+            mavryk_navigator.navigate_forward(
                 text="Operation",
                 validation_instructions=validation_instructions,
                 screen_change_before_first_instruction=True,
             )
 
             # Navigates until the field
-            tezos_navigator.navigate_forward(
+            mavryk_navigator.navigate_forward(
                 text=field.text,
                 # Even if the screen has changed, we know we are on
                 # the right screen because the text has been found
@@ -255,13 +255,13 @@ class TestOperation(ABC):
             )
 
             # Compare all field's screens
-            tezos_navigator.navigate_while_text_and_compare(
-                navigate_instruction=TezosNavInsID.REVIEW_TX_NEXT,
+            mavryk_navigator.navigate_while_text_and_compare(
+                navigate_instruction=MavrykNavInsID.REVIEW_TX_NEXT,
                 text=field.text,
                 snap_path=snapshot_dir,
             )
 
             # Finish the signing
-            tezos_navigator.accept_sign(
+            mavryk_navigator.accept_sign(
                 screen_change_before_first_instruction=False
             )

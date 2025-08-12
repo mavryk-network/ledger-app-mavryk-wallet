@@ -72,17 +72,17 @@ ui_pubkey_review(cx_ecfp_public_key_t *pubkey,
                  derivation_type_t     derivation_type,
                  action_validate_cb    callback)
 {
-    TZ_PREAMBLE(("pubkey=%p, derivation_type=%d, callback=%p", pubkey,
+    MV_PREAMBLE(("pubkey=%p, derivation_type=%d, callback=%p", pubkey,
                  derivation_type, callback));
 
     global.step = ST_PROMPT;
 
     G_pubkey.callback = callback;
-    TZ_LIB_CHECK(derive_pkh(pubkey, derivation_type, G_pubkey.address,
+    MV_LIB_CHECK(derive_pkh(pubkey, derivation_type, G_pubkey.address,
                             sizeof(G_pubkey.address)));
 
     ux_flow_init(0, ux_pubkey_review_flow, NULL);
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 #endif

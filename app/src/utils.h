@@ -13,7 +13,7 @@
  * perform magic with grep, sort, and uniq -c.
  */
 
-#ifdef TEZOS_DEBUG
+#ifdef MAVRYK_DEBUG
 #define FUNC_ENTER(x)                                           \
     do {                                                        \
         uint8_t _tmp;                                           \

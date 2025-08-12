@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tezos app backend."""
+"""Mavryk app backend."""
 
 from enum import auto
 from pathlib import Path
@@ -42,7 +42,7 @@ from ragger.firmware.touch.use_cases import (
 )
 from ragger.navigator import BaseNavInsID, NavIns, NavInsID, Navigator
 
-from .backend import TezosBackend
+from .backend import MavrykBackend
 
 
 class UseCaseSettings(OriginalUseCaseSettings, metaclass=MetaScreen):
@@ -130,7 +130,7 @@ class UseCaseReview(OriginalUseCaseReview, metaclass=MetaScreen):
         self._skip_header.tap()
 
 
-class TezosNavInsID(BaseNavInsID):
+class MavrykNavInsID(BaseNavInsID):
     """Custom NavInsID."""
 
     # UseCaseSettings
@@ -155,8 +155,8 @@ class TezosNavInsID(BaseNavInsID):
     WARNING_CHOICE_BLINDSIGN = auto()
 
 
-class TezosNavigator(metaclass=MetaScreen):
-    """Class representing Tezos app navigation."""
+class MavrykNavigator(metaclass=MetaScreen):
+    """Class representing Mavryk app navigation."""
 
     use_case_home = UseCaseHome
     use_case_settings = UseCaseSettings
@@ -170,13 +170,13 @@ class TezosNavigator(metaclass=MetaScreen):
     review_tx: UseCaseReview
     center:    Center
 
-    _backend: TezosBackend
+    _backend: MavrykBackend
     _firmware: Firmware
     _navigator: Navigator
     _root_dir: Path
 
     def __init__(self,
-                 backend: TezosBackend,
+                 backend: MavrykBackend,
                  firmware: Firmware,
                  navigator: Navigator):
         self._backend = backend
@@ -184,28 +184,28 @@ class TezosNavigator(metaclass=MetaScreen):
         self._navigator = navigator
 
         if self._firmware.is_nano:
-            self._navigator.add_callback(TezosNavInsID.REVIEW_TX_NEXT, self._backend.right_click)
+            self._navigator.add_callback(MavrykNavInsID.REVIEW_TX_NEXT, self._backend.right_click)
         else:
-            tezos_callbacks: Dict[BaseNavInsID, Callable[..., Any]] = {
-                TezosNavInsID.SETTINGS_TOGGLE_EXPERT_MODE: self.settings.toggle_expert_mode,
-                TezosNavInsID.SETTINGS_TOGGLE_BLINDSIGNING: self.settings.toggle_blindsigning,
-                TezosNavInsID.SETTINGS_EXIT: self.settings.exit,
-                TezosNavInsID.REVIEW_PK_SHOW_QR: self.review_pk.show_qr,
-                TezosNavInsID.REVIEW_TX_NEXT: self._ignore_processing(self.center.swipe_left),
-                TezosNavInsID.REVIEW_TX_SHOW_MORE: self.review_tx.show_more,
-                TezosNavInsID.REVIEW_TX_SKIP: self.review_tx.skip,
-                TezosNavInsID.REJECT_CHOICE_CONFIRM: self.review_tx.reject_choice.confirm,
-                TezosNavInsID.REJECT_CHOICE_RETURN: self.review_tx.reject_choice.reject,
-                TezosNavInsID.EXPERT_CHOICE_ENABLE: self.review_tx.enable_expert_choice.confirm,
-                TezosNavInsID.EXPERT_CHOICE_REJECT: self.review_tx.enable_expert_choice.reject,
-                TezosNavInsID.BLINDSIGN_CHOICE_ENABLE: self.review_tx.enable_blindsign_choice.confirm,
-                TezosNavInsID.BLINDSIGN_CHOICE_REJECT: self.review_tx.enable_blindsign_choice.reject,
-                TezosNavInsID.SKIP_CHOICE_CONFIRM: self._ignore_processing(self.review_tx.skip_choice.confirm),
-                TezosNavInsID.SKIP_CHOICE_REJECT: self.review_tx.skip_choice.reject,
-                TezosNavInsID.WARNING_CHOICE_SAFETY: self.review_tx.back_to_safety.confirm,
-                TezosNavInsID.WARNING_CHOICE_BLINDSIGN: self.review_tx.back_to_safety.reject,
+            mavryk_callbacks: Dict[BaseNavInsID, Callable[..., Any]] = {
+                MavrykNavInsID.SETTINGS_TOGGLE_EXPERT_MODE: self.settings.toggle_expert_mode,
+                MavrykNavInsID.SETTINGS_TOGGLE_BLINDSIGNING: self.settings.toggle_blindsigning,
+                MavrykNavInsID.SETTINGS_EXIT: self.settings.exit,
+                MavrykNavInsID.REVIEW_PK_SHOW_QR: self.review_pk.show_qr,
+                MavrykNavInsID.REVIEW_TX_NEXT: self._ignore_processing(self.center.swipe_left),
+                MavrykNavInsID.REVIEW_TX_SHOW_MORE: self.review_tx.show_more,
+                MavrykNavInsID.REVIEW_TX_SKIP: self.review_tx.skip,
+                MavrykNavInsID.REJECT_CHOICE_CONFIRM: self.review_tx.reject_choice.confirm,
+                MavrykNavInsID.REJECT_CHOICE_RETURN: self.review_tx.reject_choice.reject,
+                MavrykNavInsID.EXPERT_CHOICE_ENABLE: self.review_tx.enable_expert_choice.confirm,
+                MavrykNavInsID.EXPERT_CHOICE_REJECT: self.review_tx.enable_expert_choice.reject,
+                MavrykNavInsID.BLINDSIGN_CHOICE_ENABLE: self.review_tx.enable_blindsign_choice.confirm,
+                MavrykNavInsID.BLINDSIGN_CHOICE_REJECT: self.review_tx.enable_blindsign_choice.reject,
+                MavrykNavInsID.SKIP_CHOICE_CONFIRM: self._ignore_processing(self.review_tx.skip_choice.confirm),
+                MavrykNavInsID.SKIP_CHOICE_REJECT: self.review_tx.skip_choice.reject,
+                MavrykNavInsID.WARNING_CHOICE_SAFETY: self.review_tx.back_to_safety.confirm,
+                MavrykNavInsID.WARNING_CHOICE_BLINDSIGN: self.review_tx.back_to_safety.reject,
             }
-            self._navigator._callbacks.update(tezos_callbacks)
+            self._navigator._callbacks.update(mavryk_callbacks)
         self._root_dir = Path(__file__).resolve().parent.parent
 
     def _ignore_processing(self, callback: Callable):
@@ -401,8 +401,8 @@ class TezosNavigator(metaclass=MetaScreen):
             ]
         else:
             instructions = [
-                TezosNavInsID.SETTINGS_TOGGLE_EXPERT_MODE,
-                TezosNavInsID.SETTINGS_EXIT,
+                MavrykNavInsID.SETTINGS_TOGGLE_EXPERT_MODE,
+                MavrykNavInsID.SETTINGS_EXIT,
             ]
         kwargs['snap_start_idx'] = snap_idx
         kwargs['screen_change_before_first_instruction'] = False
@@ -427,8 +427,8 @@ class TezosNavigator(metaclass=MetaScreen):
             ]
         else:
             instructions = [
-                TezosNavInsID.SETTINGS_TOGGLE_BLINDSIGNING,
-                TezosNavInsID.SETTINGS_EXIT,
+                MavrykNavInsID.SETTINGS_TOGGLE_BLINDSIGNING,
+                MavrykNavInsID.SETTINGS_EXIT,
             ]
         kwargs['snap_start_idx'] = snap_idx
         kwargs['screen_change_before_first_instruction'] = False
@@ -439,7 +439,7 @@ class TezosNavigator(metaclass=MetaScreen):
     def navigate_forward(self, **kwargs) -> None:
         """Navigate forward until the text is found."""
         self.navigate_until_text(
-            navigate_instruction=TezosNavInsID.REVIEW_TX_NEXT,
+            navigate_instruction=MavrykNavInsID.REVIEW_TX_NEXT,
             **kwargs
         )
 
@@ -466,7 +466,7 @@ class TezosNavigator(metaclass=MetaScreen):
             text = "^Confirm$"
             if show_qr:
                 validation_instructions += [
-                    TezosNavInsID.REVIEW_PK_SHOW_QR,
+                    MavrykNavInsID.REVIEW_PK_SHOW_QR,
                     NavInsID.USE_CASE_ADDRESS_CONFIRMATION_EXIT_QR,
                 ]
             validation_instructions += [
@@ -527,7 +527,7 @@ class TezosNavigator(metaclass=MetaScreen):
             text = "^Hold to sign$"
             validation_instructions = [
                 NavInsID.USE_CASE_REVIEW_REJECT,
-                TezosNavInsID.REJECT_CHOICE_CONFIRM,
+                MavrykNavInsID.REJECT_CHOICE_CONFIRM,
                 NavInsID.USE_CASE_STATUS_DISMISS,
             ]
         self._navigate_review(
@@ -542,7 +542,7 @@ class TezosNavigator(metaclass=MetaScreen):
         if self._firmware.is_nano:
             text = "^Application$"
         else:
-            text = "^Tezos Wallet$"
+            text = "^Mavryk Wallet$"
         self._navigate_review(
             text=text,
             validation_instructions=[],
@@ -557,7 +557,7 @@ class TezosNavigator(metaclass=MetaScreen):
         self._navigate_review(
             text="^Enable expert mode$",
             validation_instructions=[
-                TezosNavInsID.EXPERT_CHOICE_ENABLE,
+                MavrykNavInsID.EXPERT_CHOICE_ENABLE,
                 NavInsID.USE_CASE_STATUS_DISMISS,
             ],
             **kwargs
@@ -572,8 +572,8 @@ class TezosNavigator(metaclass=MetaScreen):
         else:
             text = "^Enable expert mode$"
             validation_instructions = [
-                TezosNavInsID.EXPERT_CHOICE_REJECT,
-                TezosNavInsID.REJECT_CHOICE_CONFIRM,
+                MavrykNavInsID.EXPERT_CHOICE_REJECT,
+                MavrykNavInsID.REJECT_CHOICE_CONFIRM,
                 NavInsID.USE_CASE_STATUS_DISMISS,
             ]
         self._navigate_review(
@@ -598,7 +598,7 @@ class TezosNavigator(metaclass=MetaScreen):
             validation_instructions = [NavInsID.BOTH_CLICK]
         else:
             text = "^Proceed to Blindsign$"
-            validation_instructions = [TezosNavInsID.WARNING_CHOICE_BLINDSIGN]
+            validation_instructions = [MavrykNavInsID.WARNING_CHOICE_BLINDSIGN]
         self._navigate_review(
             text=text,
             validation_instructions=validation_instructions,
@@ -614,8 +614,8 @@ class TezosNavigator(metaclass=MetaScreen):
         else:
             text = "^Proceed to Blindsign$"
             validation_instructions = [
-                TezosNavInsID.WARNING_CHOICE_SAFETY,
-                TezosNavInsID.REJECT_CHOICE_CONFIRM,
+                MavrykNavInsID.WARNING_CHOICE_SAFETY,
+                MavrykNavInsID.REJECT_CHOICE_CONFIRM,
                 NavInsID.USE_CASE_STATUS_DISMISS,
             ]
         self._navigate_review(
@@ -634,7 +634,7 @@ class TezosNavigator(metaclass=MetaScreen):
             )
         else:
             self.navigate(
-                instructions=[TezosNavInsID.WARNING_CHOICE_BLINDSIGN],
+                instructions=[MavrykNavInsID.WARNING_CHOICE_BLINDSIGN],
                 screen_change_before_first_instruction=True,
                 screen_change_after_last_instruction=False,
                 **kwargs
@@ -651,8 +651,8 @@ class TezosNavigator(metaclass=MetaScreen):
         else:
             self.navigate(
                 instructions=[
-                    TezosNavInsID.WARNING_CHOICE_SAFETY,
-                    TezosNavInsID.REJECT_CHOICE_CONFIRM,
+                    MavrykNavInsID.WARNING_CHOICE_SAFETY,
+                    MavrykNavInsID.REJECT_CHOICE_CONFIRM,
                     NavInsID.USE_CASE_STATUS_DISMISS,
                 ],
                 screen_change_before_first_instruction=True,
@@ -668,8 +668,8 @@ class TezosNavigator(metaclass=MetaScreen):
         self._navigate_review(
             text="Skip",
             validation_instructions=[
-                TezosNavInsID.REVIEW_TX_SKIP,
-                TezosNavInsID.SKIP_CHOICE_CONFIRM,
+                MavrykNavInsID.REVIEW_TX_SKIP,
+                MavrykNavInsID.SKIP_CHOICE_CONFIRM,
             ],
             **kwargs
         )
@@ -682,8 +682,8 @@ class TezosNavigator(metaclass=MetaScreen):
         self._navigate_review(
             text="Skip",
             validation_instructions=[
-                TezosNavInsID.REVIEW_TX_SKIP,
-                TezosNavInsID.SKIP_CHOICE_REJECT,
+                MavrykNavInsID.REVIEW_TX_SKIP,
+                MavrykNavInsID.SKIP_CHOICE_REJECT,
             ],
             **kwargs
         )

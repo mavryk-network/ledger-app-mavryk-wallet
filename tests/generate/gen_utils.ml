@@ -13,8 +13,8 @@
    See the License for the specific language governing permissions and
    limitations under the License. *)
 
-open Tezos_protocol_018_Proxford
-open Tezos_micheline
+open Mavryk_protocol_001_PtAtLas
+open Mavryk_micheline
 
 let random_state =
   match Sys.getenv_opt "RAND" with
@@ -41,7 +41,7 @@ let lazy_expr_too_large_or_too_deep lazy_expr =
   micheline_too_large_or_too_deep expr
 
 let operations_too_large_or_too_deep
-    ( (_shell : Tezos_base.Operation.shell_header),
+    ( (_shell : Mavryk_base.Operation.shell_header),
       (Contents_list contents : Protocol.Alpha_context.packed_contents_list) ) =
   let open Protocol.Alpha_context in
   let traverse_manager (type t)

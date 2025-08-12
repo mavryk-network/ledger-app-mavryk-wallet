@@ -55,13 +55,13 @@
 
 /// Parameters parser helpers
 #define ASSERT_GLOBAL_STEP(_step) \
-    TZ_ASSERT(EXC_UNEXPECTED_STATE, global.step == (_step))
-#define ASSERT_NO_P1(_cmd) TZ_ASSERT(EXC_WRONG_PARAM, _cmd->p1 == 0u)
-#define ASSERT_NO_P2(_cmd) TZ_ASSERT(EXC_WRONG_PARAM, _cmd->p2 == 0u)
+    MV_ASSERT(EXC_UNEXPECTED_STATE, global.step == (_step))
+#define ASSERT_NO_P1(_cmd) MV_ASSERT(EXC_WRONG_PARAM, _cmd->p1 == 0u)
+#define ASSERT_NO_P2(_cmd) MV_ASSERT(EXC_WRONG_PARAM, _cmd->p2 == 0u)
 #define READ_P2_DERIVATION_TYPE(_cmd, _derivation_type)               \
     derivation_type_t _derivation_type = (derivation_type_t)_cmd->p2; \
-    TZ_ASSERT(EXC_WRONG_PARAM, DERIVATION_TYPE_IS_SET(_derivation_type))
-#define ASSERT_NO_DATA(_cmd) TZ_ASSERT(EXC_WRONG_VALUES, _cmd->data == NULL)
+    MV_ASSERT(EXC_WRONG_PARAM, DERIVATION_TYPE_IS_SET(_derivation_type))
+#define ASSERT_NO_DATA(_cmd) MV_ASSERT(EXC_WRONG_VALUES, _cmd->data == NULL)
 #define READ_DATA(_cmd, _buf) \
     buffer_t _buf = {         \
         .ptr    = _cmd->data, \
@@ -80,24 +80,24 @@
 static void
 dispatch_sign_instruction(const command_t *cmd)
 {
-    TZ_PREAMBLE(("cmd=0x%p"));
+    MV_PREAMBLE(("cmd=0x%p"));
 
-    TZ_ASSERT(EXC_UNEXPECTED_STATE,
+    MV_ASSERT(EXC_UNEXPECTED_STATE,
               (cmd->ins == INS_SIGN_WITH_HASH) || (cmd->ins == INS_SIGN));
 
     bool return_hash = cmd->ins == INS_SIGN_WITH_HASH;
 
     if ((cmd->p1 & ~P1_LAST_MARKER) == P1_FIRST) {
-        TZ_ASSERT(EXC_UNEXPECTED_STATE,
+        MV_ASSERT(EXC_UNEXPECTED_STATE,
                   (global.step == ST_IDLE) || (global.step == ST_SWAP_SIGN));
 
         READ_P2_DERIVATION_TYPE(cmd, derivation_type);
         READ_DATA(cmd, buf);
 
-        TZ_CHECK(
+        MV_CHECK(
             handle_signing_key_setup(&buf, derivation_type, return_hash));
     } else {
-        TZ_ASSERT(EXC_UNEXPECTED_STATE,
+        MV_ASSERT(EXC_UNEXPECTED_STATE,
                   (global.step == ST_BLIND_SIGN)
                       || (global.step == ST_CLEAR_SIGN)
                       || (global.step == ST_SUMMARY_SIGN)
@@ -107,19 +107,19 @@ dispatch_sign_instruction(const command_t *cmd)
 
         READ_DATA(cmd, buf);
 
-        TZ_CHECK(handle_sign(&buf, last, return_hash));
+        MV_CHECK(handle_sign(&buf, last, return_hash));
     }
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }
 
 void
 dispatch(const command_t *cmd)
 {
-    TZ_PREAMBLE(("cmd=0x%p"));
+    MV_PREAMBLE(("cmd=0x%p"));
 
     if (cmd->cla != CLA) {
-        TZ_FAIL(EXC_CLASS);
+        MV_FAIL(EXC_CLASS);
     }
 
     switch (cmd->ins) {
@@ -139,7 +139,7 @@ dispatch(const command_t *cmd)
         break;
     case INS_GET_PUBLIC_KEY:
     case INS_PROMPT_PUBLIC_KEY: {
-        TZ_ASSERT(EXC_UNEXPECTED_STATE,
+        MV_ASSERT(EXC_UNEXPECTED_STATE,
                   (global.step == ST_IDLE) || (global.step == ST_SWAP_SIGN));
 
         ASSERT_NO_P1(cmd);
@@ -150,22 +150,22 @@ dispatch(const command_t *cmd)
 
         // do not expose pks without prompt through U2F (permissionless legacy
         // comm in browser)
-        TZ_ASSERT(EXC_HID_REQUIRED,
+        MV_ASSERT(EXC_HID_REQUIRED,
                   prompt || (G_io_apdu_media != IO_APDU_MEDIA_U2F));
 
-        TZ_CHECK(handle_get_public_key(&buf, derivation_type, prompt));
+        MV_CHECK(handle_get_public_key(&buf, derivation_type, prompt));
 
         break;
     }
     case INS_SIGN:
     case INS_SIGN_WITH_HASH: {
-        TZ_CHECK(dispatch_sign_instruction(cmd));
+        MV_CHECK(dispatch_sign_instruction(cmd));
         break;
     }
     default:
         PRINTF("[ERROR] invalid instruction 0x%02x\n", cmd->ins);
-        TZ_FAIL(EXC_INVALID_INS);
+        MV_FAIL(EXC_INVALID_INS);
     }
 
-    TZ_POSTAMBLE;
+    MV_POSTAMBLE;
 }

@@ -21,23 +21,23 @@ from typing import Any, Callable, Union
 import pytest
 
 from utils.account import Account, SigType
-from utils.backend import Cla, TezosBackend, Index, Ins, StatusCode
+from utils.backend import Cla, MavrykBackend, Index, Ins, StatusCode
 from utils.message import Transaction
-from utils.navigator import TezosNavigator
+from utils.navigator import MavrykNavigator
 
 
 def test_regression_continue_after_reject(
-        backend: TezosBackend,
-        tezos_navigator: TezosNavigator,
+        backend: MavrykBackend,
+        mavryk_navigator: MavrykNavigator,
         account: Account
 ):
     """Check the app still runs after rejects signing"""
 
-    tezos_navigator.toggle_expert_mode()
+    mavryk_navigator.toggle_expert_mode()
 
     with StatusCode.REJECT.expected():
         with backend.prompt_public_key(account):
-            tezos_navigator.reject_public_key()
+            mavryk_navigator.reject_public_key()
 
     backend.wait_for_home_screen()
 
@@ -45,12 +45,12 @@ def test_regression_continue_after_reject(
 
     with StatusCode.REJECT.expected():
         with backend.sign(account, message, with_hash=True):
-            tezos_navigator.reject_sign()
+            mavryk_navigator.reject_sign()
 
     backend.get_public_key(account)
 
 
-def test_change_sign_instruction(backend: TezosBackend, account: Account):
+def test_change_sign_instruction(backend: MavrykBackend, account: Account):
     """Check signing instruction changes behaviour"""
 
     message = Transaction()
@@ -72,7 +72,7 @@ def test_change_sign_instruction(backend: TezosBackend, account: Account):
             payload,
             last=True)
 
-def test_mixing_command(backend: TezosBackend, account: Account):
+def test_mixing_command(backend: MavrykBackend, account: Account):
     """Check that mixing instruction fails"""
 
     backend._ask_sign(Ins.SIGN, account)
@@ -102,7 +102,7 @@ def test_mixing_command(backend: TezosBackend, account: Account):
 
 @pytest.mark.parametrize("ins", [Ins.GET_PUBLIC_KEY, Ins.PROMPT_PUBLIC_KEY], ids=lambda ins: f"{ins}")
 @pytest.mark.parametrize("index", [Index.OTHER, Index.LAST], ids=lambda index: f"{index}")
-def test_wrong_index(backend: TezosBackend, account: Account, ins: Ins, index: Index):
+def test_wrong_index(backend: MavrykBackend, account: Account, ins: Ins, index: Index):
     """Check wrong apdu index behaviour"""
 
     with StatusCode.WRONG_PARAM.expected():
@@ -129,9 +129,9 @@ def test_wrong_index(backend: TezosBackend, account: Account, ins: Ins, index: I
         "sign_with_hash",
     ]
 )
-def test_wrong_derivation_type(backend: TezosBackend, sender: Callable[[TezosBackend, Account], Any]):
+def test_wrong_derivation_type(backend: MavrykBackend, sender: Callable[[MavrykBackend, Account], Any]):
     """Check wrong derivation type behaviour"""
-    account = Account("m/44'/1729'/0'/0'", 0x04, "__unused__")
+    account = Account("m/44'/1969'/0'/0'", 0x04, "__unused__")
 
     with StatusCode.WRONG_PARAM.expected():
         sender(backend, account)
@@ -175,16 +175,16 @@ def test_wrong_derivation_type(backend: TezosBackend, sender: Callable[[TezosBac
     ]
 )
 def test_wrong_derivation_path(
-        backend: TezosBackend,
+        backend: MavrykBackend,
         account: Account,
-        sender: Callable[[TezosBackend, Account], Any]):
+        sender: Callable[[MavrykBackend, Account], Any]):
     """Check wrong derivation path behaviour"""
 
     with StatusCode.WRONG_LENGTH_FOR_INS.expected():
         sender(backend, account)
 
 @pytest.mark.parametrize("class_", [0x00, 0x81])
-def test_wrong_class(backend: TezosBackend, class_: int):
+def test_wrong_class(backend: MavrykBackend, class_: int):
     """Check wrong apdu class behaviour"""
 
     raw = \
@@ -205,7 +205,7 @@ def test_wrong_class(backend: TezosBackend, class_: int):
     ],
     ids=lambda param: f"size={param}" if isinstance(param, int) else f"data={param}"
 )
-def test_wrong_apdu_length(backend: TezosBackend, size: int, data: bytes):
+def test_wrong_apdu_length(backend: MavrykBackend, size: int, data: bytes):
     """Check wrong apdu length behaviour"""
 
     raw = \
@@ -236,7 +236,7 @@ def test_wrong_apdu_length(backend: TezosBackend, size: int, data: bytes):
     ],
     ids=lambda ins: f"ins={ins}"
 )
-def test_unimplemented_commands(backend: TezosBackend, ins: Union[int, Ins]):
+def test_unimplemented_commands(backend: MavrykBackend, ins: Union[int, Ins]):
     """Check unimplemented commands"""
 
     with StatusCode.INVALID_INS.expected():

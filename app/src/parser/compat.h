@@ -1,4 +1,4 @@
-/* Tezos Embedded C parser for Ledger - Platform compatibility layer
+/* Mavryk Embedded C parser for Ledger - Platform compatibility layer
 
    Copyright 2023 Nomadic Labs <contact@nomadic-labs.com>
 
@@ -17,7 +17,7 @@
 #pragma once
 
 // Some "good enough" heuristics to know if we are actually compiling
-// for BOLOS or running in the Tezos client/testing.
+// for BOLOS or running in the Mavryk client/testing.
 #if __has_include("os.h")
 #include "os.h"
 #if __has_include("cx.h")
@@ -34,7 +34,7 @@
 #else
 #include <stdio.h>
 #define PIC(x) ((void *)x)
-#ifdef TEZOS_DEBUG
+#ifdef MAVRYK_DEBUG
 #define PRINTF printf
 #else
 #define PRINTF(...) \
