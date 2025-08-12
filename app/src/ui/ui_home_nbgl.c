@@ -35,7 +35,7 @@ void mv_ui_home_redisplay(void);
 //  -----------------------------------------------------------
 #define SETTING_INFO_NB 3
 
-static const char *const infoTypes[]    = {"Version", "Developer", "Contact"};
+static const char *const infoTypes[] = {"Version", "Developer", "Contact"};
 static const char *const infoContents[]
     = {APPVERSION, "Mavryk Dynamics LTD.", "info@mavryk.io"};
 
