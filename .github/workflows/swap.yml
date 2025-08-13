@@ -13,5 +13,5 @@ jobs:
     uses: mavryk-network/app-exchange/.github/workflows/reusable_swap_functional_tests.yml@develop
     with:
       branch_for_exchange: 'develop'
-      repo_for_mavryk: ${{ github.repository }}
+      branch_for_mavryk: ${{ github.repository }}
       test_filter: '"mavryk"'
