@@ -10,7 +10,7 @@ on:
 
 jobs:
   job_functional_tests:
-    uses: LedgerHQ/app-exchange/.github/workflows/reusable_swap_functional_tests.yml@develop
+    uses: mavryk-network/app-exchange/.github/workflows/reusable_swap_functional_tests.yml@develop
     with:
       branch_for_exchange: 'develop'
       branch_for_mavryk: ${{ github.ref }}
