@@ -42,6 +42,10 @@ blindsign_toggle()
     FUNC_LEAVE();
 }
 
+static void ux_expert_mode_step_validateinit(unsigned int stack_slot);
+static void ux_blindsign_step_validateinit(unsigned int stack_slot);
+static void ux_back_step_validateinit(unsigned int stack_slot);
+
 UX_STEP_CB(ux_expert_mode_step, bn, expert_mode_toggle(),
            {"Expert mode", G_settings.expert_mode_state});
 UX_STEP_CB(ux_blindsign_step, bn, blindsign_toggle(),

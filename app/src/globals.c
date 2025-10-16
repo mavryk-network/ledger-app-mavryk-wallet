@@ -41,16 +41,16 @@ void
 toggle_expert_mode(void)
 {
     settings_t tmp;
-    memcpy(&tmp, (void *)&N_settings, sizeof(tmp));
+    memcpy(&tmp, (const void *)&N_settings, sizeof tmp);
     tmp.expert_mode = !N_settings.expert_mode;
-    nvm_write((void *)&N_settings, (void *)&tmp, sizeof(N_settings));
+    nvm_write((void *)&N_settings, (void *)&tmp, sizeof N_settings);
 }
 
 void
 toggle_blindsigning(void)
 {
     settings_t tmp;
-    memcpy(&tmp, (void *)&N_settings, sizeof(tmp));
+    memcpy(&tmp, (const void *)&N_settings, sizeof tmp);
     tmp.blindsigning = !N_settings.blindsigning;
-    nvm_write((void *)&N_settings, (void *)&tmp, sizeof(N_settings));
+    nvm_write((void *)&N_settings, (void *)&tmp, sizeof N_settings);
 }

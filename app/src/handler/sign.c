@@ -82,7 +82,7 @@ static void init_summary_stream(void);
 #endif
 
 #ifdef HAVE_BAGL
-void
+static void
 mv_ui_stream_push_accept_reject(void)
 {
     FUNC_ENTER(("void"));
@@ -98,9 +98,9 @@ mv_ui_stream_push_accept_reject(void)
     FUNC_LEAVE();
 }
 
-void
+static void
 mv_ui_stream_push_risky_accept_reject(mv_ui_cb_type_t accept_cb_type,
-                                      mv_ui_cb_type_t reject_cb_type)
+                                     mv_ui_cb_type_t reject_cb_type)
 {
     FUNC_ENTER(("void"));
     mv_ui_stream_push(accept_cb_type, "Accept risk", "", MV_UI_LAYOUT_HOME_PB,
@@ -136,7 +136,7 @@ mv_ui_stream_push_warning_not_trusted(const char *title_reason,
     FUNC_LEAVE();
 }
 
-void
+static void
 mv_ui_stream_push_learn_more(void)
 {
     FUNC_ENTER(("void"));

@@ -371,7 +371,7 @@ mv_ui_stream(void)
     FUNC_LEAVE();
 }
 
-uint8_t
+static uint8_t
 mv_ui_max_line_chars(const char *value, int length)
 {
     uint8_t will_fit = MIN(MV_UI_STREAM_CONTENTS_WIDTH, length);

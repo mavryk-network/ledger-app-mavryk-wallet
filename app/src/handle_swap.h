@@ -28,3 +28,11 @@
  *
  */
 void swap_check_validity(void);
+
+/**
+ * @brief Finalize exchange sign transaction and set result.
+ * 
+ * @param is_success Whether the transaction was successful
+ */
+void __attribute__((noreturn))
+swap_finalize_exchange_sign_transaction(bool is_success);
