@@ -187,6 +187,11 @@ let pp_lazy_expr ppf lazy_expr =
   let expr = Result.get_ok @@ Protocol.Script_repr.force_decode lazy_expr in
   Format.fprintf ppf "%a" (pp_node ~wrap:false) (Micheline.root expr)
 
+let is_unit_expr lazy_expr =
+  let expr = Result.get_ok @@ Protocol.Script_repr.force_decode lazy_expr in
+  let str = Format.asprintf "%a" (pp_node ~wrap:false) (Micheline.root expr) in
+  str = "Unit"
+
 let pp_string_binary ppf s = Format.fprintf ppf "%a" Hex.pp (Hex.of_string s)
 
 let pp_serialized_proof ppf proof =
@@ -258,9 +263,12 @@ let operation_to_screens
                (pp_opt_field Mavryk_crypto.Signature.Public_key_hash.pp)
                delegate;
            ]
-        @ first_expert_mode_screen "Code"
+        @ (if is_unit_expr code then [] else first_expert_mode_screen "Code")
         @ [
             make_screen ~title:"Code" "%a" pp_lazy_expr code;
+          ]
+        @ (if is_unit_expr code then first_expert_mode_screen "Storage" else [])
+        @ [
             make_screen ~title:"Storage" "%a" pp_lazy_expr storage;
           ]
     | Register_global_constant { value } ->
@@ -298,9 +306,12 @@ let operation_to_screens
     | Transfer_ticket
         { contents; ty; ticketer; amount; destination; entrypoint } ->
         aux ~kind:"Transfer ticket"
-        @@ first_expert_mode_screen "Contents"
+        @@ (if is_unit_expr contents then [] else first_expert_mode_screen "Contents")
         @ [
             make_screen ~title:"Contents" "%a" pp_lazy_expr contents;
+        ]
+        @ (if is_unit_expr contents && not (is_unit_expr ty) then first_expert_mode_screen "Type" else [])
+        @ [
             make_screen ~title:"Type" "%a" pp_lazy_expr ty;
             make_screen ~title:"Ticketer" "%a" Contract.pp ticketer;
             make_screen ~title:"Amount" "%s"
@@ -423,9 +434,9 @@ let path_9_12_13_8_78 = [ 9; 12; 13; 8; 78 ]
 
 let mv1_signers =
   [
-    (* mv1SLzLmKZYu9HztmZupdiQKMgGQ34wnaR4c *)
+    (* mv1J9DSm9h74tTSAe13vhb7918Vva4kFHSee *)
     Apdu.Signer.make ~mnemonic:zebra ~path:default_path
-      ~sk:"edsk2tUyhVvGj9B1S956ZzmaU4bC9J7t8xVBH52fkAoZL25MHEwacd";
+      ~sk:"edsk3j9sL3fqqgTa25t74q4wWC1RsgfNSkmKZKVNQhh8ZazZneLzMZ";
     (* mv1BKxieMqKSPBR5Hix3yMfdNPSFZyPXeus8 *)
     Apdu.Signer.make ~mnemonic:seed12 ~path:path_0
       ~sk:"edsk3xdyqj4YH64DKQ3ihVktjs2x5DagcoP3yNbdqPg3FAibHM1EU2";
@@ -438,9 +449,9 @@ let mv1_signers =
     (* mv1MYRmdiQSY1aJ2SJoTdba9d3xgrA8ytQ4n *)
     Apdu.Signer.make ~mnemonic:seed24 ~path:path_9_12_13_8_78
       ~sk:"edsk2vPx2hnTsef6EeuD846PoHTja7dM96YtZ26S3Xz4KP36a2m6k1";
-    (* mv1AhFBiudqxexh8TJ6EhZvd5C9VqZhKCG4h *)
+    (* mv1ALXYXsimcoovh18Jebj5oM38J4cXJZEpV *)
     Apdu.Signer.make ~mnemonic:seed12 ~path:default_path
-      ~sk:"edsk3q2GyniEU2jGxw7uLFPys4AfALs96VE64d7kr7NXhtN4w8RUue";
+      ~sk:"edsk3jCntaDPqXU4PGVtQijLc5sBrUQCYtQNHq1YBJ6i3ZAnBwL4jd";
     (* mv1NhGFtxFbkhR53DcDNbnNKwoqLr8UAVyEL *)
     Apdu.Signer.make ~mnemonic:seed15 ~path:path_0
       ~sk:"edsk35nft3nYCBpzdXqKCL1VPpVTa3NFTDGj7QqSxc1auzkjz2znTW";
@@ -457,9 +468,9 @@ let mv1_signers =
 
 let mv2_signers =
   [
-    (* mv2Tt9pzSu522YivfVZkQmsgabyzErLLy7x9 *)
+    (* mv2iiXSeksMFwAqKAcih8Huo9BzheC6eZRdj *)
     Apdu.Signer.make ~mnemonic:zebra ~path:default_path
-      ~sk:"spsk2Pfx9chqXVbz2tW7ze4gGU4RfaiK3nSva77bp69zHhFho2zTze";
+      ~sk:"spsk3LvLaRN69uTDb6E3nkp8p1FkY6HVEoW1StaDZ5kBTkipDZTF3V";
     (* mv2Mu53mex3PaLcxZZUZBToRiiJmk7ApvV23 *)
     Apdu.Signer.make ~mnemonic:seed12 ~path:path_0
       ~sk:"spsk3AexEMWMxpMTuYCu9X4CXuksjhbzg1CDGSromY8Vi4tWJp2cyX";
@@ -472,9 +483,9 @@ let mv2_signers =
     (* mv2WUH798q41hmWxQQxCETQENbHLm3RhXdYy *)
     Apdu.Signer.make ~mnemonic:seed24 ~path:path_9_12_13_8_78
       ~sk:"spsk2Z8YhgcbTRy9DTFqjjgzjKF9GZja6L66nL7rZzN5z4THMXC1Ma";
-    (* mv2ba898ATEgQYm1BEdXxC1BPNYs5Y9vVRbT *)
+    (* mv2QedLezqQWbLwSxhB7FeSrEjMd7M3QWvRL *)
     Apdu.Signer.make ~mnemonic:seed12 ~path:default_path
-      ~sk:"spsk1cWQyarGSriaDPeoFYMh4N5V2MVxZiM5cxUzWMW5FfqCCvyy4z";
+      ~sk:"spsk3DKHfVzWLXZpzjBt3yYkXpSKN11zfCFavX1pjunDDZqBFHAwER";
     (* mv2PcTjyGPy6HcJx4FYqMAtgTvzVEDJkadzn *)
     Apdu.Signer.make ~mnemonic:seed15 ~path:path_0
       ~sk:"spsk2RCfKCD8Wq9P37LTotWD1F1oCvFFSzUgMSm5aEyaWndyy7gDys";
@@ -491,9 +502,9 @@ let mv2_signers =
 
 let mv3_signers =
   [
-    (* mv3GirHWj1f5g3BfpD4spJiYjXV293xmeEF1 *)
+    (*(* mv3GirHWj1f5g3BfpD4spJiYjXV293xmeEF1 *)
     Apdu.Signer.make ~mnemonic:zebra ~path:default_path
-      ~sk:"p2sk2zPCmKo6zTSjPbDHnLiHtPAqVRFrExN3oTvKGbu3C99Jyeyura";
+      ~sk:"p2sk2zPCmKo6zTSjPbDHnLiHtPAqVRFrExN3oTvKGbu3C99Jyeyura";*)
     (* mv3GaBjk1ZgS8L4HWraHvx3RQL88yR8n3ygU *)
     Apdu.Signer.make ~mnemonic:seed12 ~path:path_0
       ~sk:"p2sk33tVU1LvLBLaPcvT35fedM5p2cqncRMntkjggXBNbzW78zd119";
@@ -506,9 +517,9 @@ let mv3_signers =
     (* mv3AqbQWWfT47cGewAypq1wsRq2vs2oiiNoh *)
     Apdu.Signer.make ~mnemonic:seed24 ~path:path_9_12_13_8_78
       ~sk:"p2sk4AwmdZy89ZGb4qfrSZeDxfTP75b7q8gsWBBuYMQf7XqtxS7V6H";
-    (* mv3LfGH6qbwkPaDbCqN1EGxt4kMTreRhMK49 *)
+    (*(* mv3LfGH6qbwkPaDbCqN1EGxt4kMTreRhMK49 *)
     Apdu.Signer.make ~mnemonic:seed12 ~path:default_path
-      ~sk:"p2sk4ASENf9NtKzvNV9psrM5sLCb3SduXpgF4Gw92pX3EeKWNszcQ9";
+      ~sk:"p2sk4ASENf9NtKzvNV9psrM5sLCb3SduXpgF4Gw92pX3EeKWNszcQ9";*)
     (* mv3Ddx18fdq3GBHAWp3x1ZQ14Bp7YQ274FFW *)
     Apdu.Signer.make ~mnemonic:seed15 ~path:path_0
       ~sk:"p2sk2uQBEEebh9Y1PGJASM1qauCeTMDLZxuLmYzK7qVwRAHUiZNyet";
