@@ -152,6 +152,11 @@ integration_tests_%:	integration_tests_basic_%		\
 			tests/samples/micheline/nano	\
 			tests/samples/operations/nano
 
+# Stax and Flex do not use nano sample directories; run basic suite only
+integration_tests_stax: integration_tests_basic_stax
+
+integration_tests_flex: integration_tests_basic_flex
+
 integration_tests: 	tests/integration/*.sh			\
 			integration_tests_nanos 		\
 			integration_tests_nanosp 		\
