@@ -55,9 +55,6 @@ UX_STEP_NOCB(ux_pubkey_review_step, pbb,
 #endif
 UX_STEP_NOCB(ux_pubkey_address_step, bn_paging,
            {"Address", G_pubkey.address});
-static void ux_pubkey_confirm_step_validateinit(unsigned int stack_slot);
-static void ux_pubkey_reject_step_validateinit(unsigned int stack_slot);
-
 UX_STEP_CB(ux_pubkey_confirm_step, pb, ux_pubkey_callback(true),
            {&C_icon_validate_14, "Approve"});
 UX_STEP_CB(ux_pubkey_reject_step, pb, ux_pubkey_callback(false),

@@ -37,7 +37,7 @@ handle_get_version(void)
 {
     FUNC_ENTER(("void"));
 
-    io_send_response_pointer((void *)&version, sizeof version, SW_OK);
+    io_send_response_pointer((void *)&version, sizeof(version), SW_OK);
 
     FUNC_LEAVE();
 }

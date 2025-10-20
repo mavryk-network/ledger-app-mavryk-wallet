@@ -26,23 +26,6 @@
 
 #define G_stream global.ui.stream
 
-// Local definitions for CppCheck to avoid unknownMacro errors
-#ifndef UX_WAKE_UP
-#define UX_WAKE_UP() do { } while(0)
-#endif
-
-#ifndef DISPLAY
-#define DISPLAY(elts, cb, len)                                   \
-    memcpy(global.ui.stream.current_screen.bagls, elts,          \
-           len * sizeof(bagl_element_t));                        \
-    G_ux.stack[0].element_arrays[0].element_array                \
-        = global.ui.stream.current_screen.bagls;                 \
-    G_ux.stack[0].element_arrays[0].element_array_count  = len;  \
-    G_ux.stack[0].button_push_callback                   = cb;   \
-    G_ux.stack[0].screen_before_element_display_callback = NULL; \
-    UX_WAKE_UP()
-#endif
-
 #ifdef HAVE_BAGL
 static unsigned int cb(unsigned int button_mask,
                        unsigned int button_mask_counter);
@@ -371,7 +354,7 @@ mv_ui_stream(void)
     FUNC_LEAVE();
 }
 
-static uint8_t
+uint8_t
 mv_ui_max_line_chars(const char *value, int length)
 {
     uint8_t will_fit = MIN(MV_UI_STREAM_CONTENTS_WIDTH, length);

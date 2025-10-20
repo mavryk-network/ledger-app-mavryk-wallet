@@ -33,7 +33,7 @@ handle_get_git_commit(void)
     FUNC_ENTER(("void"));
 
     static const char commit[] = COMMIT;
-    io_send_response_pointer((void *)commit, sizeof commit, SW_OK);
+    io_send_response_pointer((void *)commit, sizeof(commit), SW_OK);
 
     FUNC_LEAVE();
 }

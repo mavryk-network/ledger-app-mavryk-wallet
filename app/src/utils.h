@@ -16,7 +16,7 @@
 #ifdef MAVRYK_DEBUG
 #define FUNC_ENTER(x)                                           \
     do {                                                        \
-        uint8_t _tmp = 0;                                       \
+        uint8_t _tmp;                                           \
         PRINTF("[DEBUG] call %s(", __func__);                   \
         PRINTF x;                                               \
         PRINTF(") at %s:%u\n", __FILE__, __LINE__);             \

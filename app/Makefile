@@ -113,22 +113,15 @@ endif
 ENABLE_SDK_WERROR=1
 CFLAGS   += -O3 -Os -Wall -Wextra
 CFLAGS   += -Wassign-enum
-#CFLAGS   += -Wbad-function-cast
-CFLAGS   += -Wcast-align
-#CFLAGS   += -Wcast-qual
 CFLAGS   += -Wcomma
 CFLAGS   += -Wdeprecated
-CFLAGS   += -Wmissing-prototypes
 CFLAGS   += -Wnull-pointer-arithmetic
 CFLAGS   += -Wover-aligned
-#CFLAGS   += -Wpointer-arith
-#CFLAGS   += -Wreserved-id-macro
 CFLAGS   += -Wshadow-all
 CFLAGS   += -Wsign-compare
 CFLAGS   += -Wstring-compare
 CFLAGS   += -Wstring-conversion
 CFLAGS   += -Wuninitialized
-#CFLAGS   += -Wunreachable-code-aggressive
 CFLAGS   += -Wwrite-strings
 
 ########################################
