@@ -121,7 +121,6 @@ jobs:
       credentials:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-      options: -u root --entrypoint /bin/bash
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -133,15 +132,16 @@ jobs:
 
       - name: Generate
         run: |
-          # Switch to opam user and set up environment
-          su - opam -c "cd /app && export PATH=/home/opam/.opam/4.14/bin:$PATH && cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser"
-          
-          su - opam -c "cd /app && export PATH=/home/opam/.opam/4.14/bin:$PATH && eval \$(opam env) && dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline"
-          su - opam -c "cd /app && export PATH=/home/opam/.opam/4.14/bin:$PATH && eval \$(opam env) && dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations"
+          export PATH=/home/opam/.opam/4.14/bin:$PATH
+          cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
+
+          eval $(opam env) && dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline
+          eval $(opam env) && dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations
 
       - name: Unit tests
         run: |
-          su - opam -c "cd /app && export PATH=/home/opam/.opam/4.14/bin:$PATH && eval \$(opam env) && make -C tests/unit"
+          export PATH=/home/opam/.opam/4.14/bin:$PATH
+          eval $(opam env) && make -C tests/unit
 
       - name: Upload results (nano, micheline)
         uses: actions/upload-artifact@v4
