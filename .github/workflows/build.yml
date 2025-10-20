@@ -136,16 +136,15 @@ jobs:
           export PATH=/home/opam/.opam/4.14/bin:$PATH
           cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
 
-          dune exec ./tests/generate/generate.exe micheline 50 \
+          eval $(opam env) && dune exec ./tests/generate/generate.exe micheline 50 \
               nano tests/samples/micheline
-          dune exec ./tests/generate/generate.exe operations 50 \
+          eval $(opam env) && dune exec ./tests/generate/generate.exe operations 50 \
               nano tests/samples/operations
 
       - name: Unit tests
         run: |
           export PATH=/home/opam/.opam/4.14/bin:$PATH
-
-          make -C tests/unit
+          eval $(opam env) && make -C tests/unit
 
       - name: Upload results (nano, micheline)
         uses: actions/upload-artifact@v4
