@@ -144,6 +144,9 @@ jobs:
               mkdir -p tests/samples/micheline/nano
               mkdir -p tests/samples/operations/nano
               cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
+              # Change ownership to opam user so it can write
+              chown -R opam:opam /workspace/tests
+              chown -R opam:opam /workspace/app
             '
           
           # Then run as opam user for OPAM/dune commands
