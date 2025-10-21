@@ -143,23 +143,21 @@ jobs:
           ls -la /home/opam/ || echo "No /home/opam directory"
           echo "Contents of /home/opam/.opam:"
           ls -la /home/opam/.opam/ || echo "No .opam directory"
+          echo "Trying to switch to opam user:"
+          su - opam -c "whoami && which opam && which dune" || echo "Failed to switch to opam user"
 
       - name: Generate
         run: |
-          # Initialize OPAM environment
-          eval $(opam env)
-          cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
-
-          dune exec ./tests/generate/generate.exe micheline 50 \
-              nano tests/samples/micheline
-          dune exec ./tests/generate/generate.exe operations 50 \
-              nano tests/samples/operations
+          # Switch to opam user and run commands
+          su - opam -c "cd /app && eval \$(opam env) && cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser"
+          
+          su - opam -c "cd /app && eval \$(opam env) && dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline"
+          su - opam -c "cd /app && eval \$(opam env) && dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations"
 
       - name: Unit tests
         run: |
-          # Initialize OPAM environment
-          eval $(opam env)
-          make -C tests/unit
+          # Switch to opam user and run unit tests
+          su - opam -c "cd /app && eval \$(opam env) && make -C tests/unit"
 
       - name: Upload results (nano, micheline)
         uses: actions/upload-artifact@v4
