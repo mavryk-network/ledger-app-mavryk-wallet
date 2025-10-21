@@ -149,10 +149,18 @@ jobs:
               # Copy files as root (no permission issues)
               cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
               
-              # Switch to opam user for OPAM/dune commands
-              su - opam -c "cd /workspace && eval \$(opam env) && dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline"
-              su - opam -c "cd /workspace && eval \$(opam env) && dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations"
-              su - opam -c "cd /workspace && eval \$(opam env) && make -C tests/unit"
+              # Debug: Check what is available
+              echo "=== DEBUG INFO ==="
+              echo "Current user: $(whoami)"
+              echo "Available users:"
+              cat /etc/passwd | grep opam || echo "No opam user found"
+              echo "OPAM environment check:"
+              su - opam -c "echo \"User: \$(whoami)\" && echo \"PATH: \$PATH\" && which opam && which dune" || echo "Failed to switch to opam"
+              
+              # Try running as opam user with explicit environment setup
+              su - opam -c "cd /workspace && export PATH=/home/opam/.opam/4.14/bin:\$PATH && eval \$(opam env) && which dune && dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline"
+              su - opam -c "cd /workspace && export PATH=/home/opam/.opam/4.14/bin:\$PATH && eval \$(opam env) && dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations"
+              su - opam -c "cd /workspace && export PATH=/home/opam/.opam/4.14/bin:\$PATH && eval \$(opam env) && make -C tests/unit"
             '
 
       - name: Upload results (nano, micheline)
