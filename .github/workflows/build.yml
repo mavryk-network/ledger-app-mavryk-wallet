@@ -117,7 +117,7 @@ jobs:
     needs: [build_docker_mavryk_ocaml]
     runs-on: ubuntu-latest
     container:
-      image: ${{ needs.build_docker_mavryk_ocaml.outputs.image }}
+      image: ${{ needs.build_docker_mavryk_ocaml.outputs.image || 'mavrykdynamics/mavryk_ocaml:main' }}
       credentials:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
@@ -125,12 +125,8 @@ jobs:
       - name: Debug Docker image
         run: |
           echo "Docker image being used: ${{ needs.build_docker_mavryk_ocaml.outputs.image }}"
-          echo "Checking if image exists locally:"
-          docker images | grep mavryk || echo "No mavryk images found locally"
-          echo "Checking container info:"
-          cat /etc/os-release || echo "No os-release found"
-          echo "Checking available users:"
-          cat /etc/passwd | grep -E "(opam|root|runner)" || echo "No relevant users found"
+          echo "Job result: ${{ needs.build_docker_mavryk_ocaml.result }}"
+          echo "Job status: ${{ needs.build_docker_mavryk_ocaml.conclusion }}"
 
       - name: Checkout
         uses: actions/checkout@v3

@@ -82,10 +82,6 @@ jobs:
             echo "tag=$BASE:${{ steps.branches.outputs.branch }}" >> $GITHUB_OUTPUT
             echo "prev_tag=$BASE:${{ steps.branches.outputs.branch }}" >> $GITHUB_OUTPUT
           fi
-          echo "Debug: Setting tag output to: $BASE:${{ steps.branches.outputs.branch }}"
-          echo "Debug: DOCKER_REGISTRY=${{ vars.DOCKER_REGISTRY }}"
-          echo "Debug: DOCKER_REPOSITORY=${{ vars.DOCKER_REPOSITORY }}"
-          echo "Debug: image_name=${{ inputs.image_name }}"
       - name: Dockerfile changed
         id: dockerfile
         run: |
@@ -119,8 +115,3 @@ jobs:
           push: true
           file: ${{ inputs.dockerfile }}
           tags: ${{ steps.container_tag.outputs.tag }}
-      
-      - name: Debug final output
-        run: |
-          echo "Final image tag: ${{ steps.container_tag.outputs.tag }}"
-          echo "Job output will be: ${{ steps.container_tag.outputs.tag }}"
