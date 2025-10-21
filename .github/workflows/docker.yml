@@ -158,7 +158,7 @@ jobs:
           echo "Final image tag: ${{ steps.container_tag.outputs.tag }}"
           echo "Job output will be: ${{ steps.container_tag.outputs.tag }}"
           echo "Raw tag value: '${{ steps.container_tag.outputs.tag }}'"
-          echo "Tag length: ${#{{ steps.container_tag.outputs.tag }}}"
+          echo "Tag length: $(echo '${{ steps.container_tag.outputs.tag }}' | wc -c)"
           echo "All step outputs:"
           echo "  - tag: '${{ steps.container_tag.outputs.tag }}'"
           echo "  - prev_tag: '${{ steps.container_tag.outputs.prev_tag }}'"

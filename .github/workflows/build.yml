@@ -52,6 +52,8 @@ jobs:
       dockerfile: docker/Dockerfile.ocaml
       image_name: mavryk_ocaml
       checkout_submodules: true
+    outputs:
+      image: ${{ jobs.build_docker.outputs.image }}
 
   integration_tests_basic:
     needs: [build_app]
@@ -117,23 +119,28 @@ jobs:
     needs: [build_docker_mavryk_ocaml]
     runs-on: ubuntu-latest
     container:
-      image: ${{ needs.build_docker_mavryk_ocaml.outputs.image || 'mavrykdynamics/mavryk_ocaml:main' }}
+      image: ${{ needs.build_docker_mavryk_ocaml.outputs.image }}
       credentials:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     steps:
       - name: Debug Docker image
         run: |
-          echo "=== BUILD.YML DEBUG ==="
+          echo "=== BUILD.YML DEBUG - NEW OUTPUT ==="
           echo "Docker image being used: ${{ needs.build_docker_mavryk_ocaml.outputs.image }}"
           echo "Job result: ${{ needs.build_docker_mavryk_ocaml.result }}"
           echo "Job status: ${{ needs.build_docker_mavryk_ocaml.conclusion }}"
           echo "Raw output value: '${{ needs.build_docker_mavryk_ocaml.outputs.image }}'"
-          echo "Output length: ${#{{ needs.build_docker_mavryk_ocaml.outputs.image }}}"
+          echo "Output length: $(echo '${{ needs.build_docker_mavryk_ocaml.outputs.image }}' | wc -c)"
           echo "All job outputs:"
           echo "  - image: '${{ needs.build_docker_mavryk_ocaml.outputs.image }}'"
           echo "  - result: '${{ needs.build_docker_mavryk_ocaml.result }}'"
           echo "  - conclusion: '${{ needs.build_docker_mavryk_ocaml.conclusion }}'"
+          echo "Container info:"
+          cat /etc/os-release || echo "No os-release found"
+          echo "Current user: $(whoami)"
+          echo "Available users:"
+          cat /etc/passwd | grep -E "(opam|root|runner)" || echo "No relevant users found"
 
       - name: Checkout
         uses: actions/checkout@v3
