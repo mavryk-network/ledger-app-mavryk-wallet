@@ -117,29 +117,12 @@ jobs:
     needs: [build_docker_mavryk_ocaml]
     runs-on: ubuntu-latest
     container:
-      image: ${{ needs.build_docker_mavryk_ocaml.outputs.image }}
+      image: ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/mavryk_ocaml:main
       credentials:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+      options: -u root --entrypoint /bin/bash
     steps:
-      - name: Debug Docker image
-        run: |
-          echo "=== BUILD.YML DEBUG - NEW OUTPUT ==="
-          echo "Docker image being used: ${{ needs.build_docker_mavryk_ocaml.outputs.image }}"
-          echo "Job result: ${{ needs.build_docker_mavryk_ocaml.result }}"
-          echo "Job status: ${{ needs.build_docker_mavryk_ocaml.conclusion }}"
-          echo "Raw output value: '${{ needs.build_docker_mavryk_ocaml.outputs.image }}'"
-          echo "Output length: $(echo '${{ needs.build_docker_mavryk_ocaml.outputs.image }}' | wc -c)"
-          echo "All job outputs:"
-          echo "  - image: '${{ needs.build_docker_mavryk_ocaml.outputs.image }}'"
-          echo "  - result: '${{ needs.build_docker_mavryk_ocaml.result }}'"
-          echo "  - conclusion: '${{ needs.build_docker_mavryk_ocaml.conclusion }}'"
-          echo "Container info:"
-          cat /etc/os-release || echo "No os-release found"
-          echo "Current user: $(whoami)"
-          echo "Available users:"
-          cat /etc/passwd | grep -E "(opam|root|runner)" || echo "No relevant users found"
-
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -148,34 +131,21 @@ jobs:
           mkdir -p tests/samples/micheline/nano
           mkdir -p tests/samples/operations/nano
 
-      - name: Debug environment
-        run: |
-          echo "Current user: $(whoami)"
-          echo "Current directory: $(pwd)"
-          echo "PATH: $PATH"
-          echo "Looking for opam:"
-          which opam || echo "opam not found"
-          echo "Looking for dune:"
-          which dune || echo "dune not found"
-          echo "Contents of /home/opam:"
-          ls -la /home/opam/ || echo "No /home/opam directory"
-          echo "Contents of /home/opam/.opam:"
-          ls -la /home/opam/.opam/ || echo "No .opam directory"
-          echo "Trying to switch to opam user:"
-          su - opam -c "whoami && which opam && which dune" || echo "Failed to switch to opam user"
-
       - name: Generate
         run: |
-          # Switch to opam user and run commands
-          su - opam -c "cd /app && eval \$(opam env) && cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser"
-          
-          su - opam -c "cd /app && eval \$(opam env) && dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline"
-          su - opam -c "cd /app && eval \$(opam env) && dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations"
+          export PATH=/home/opam/.opam/4.14/bin:$PATH
+          cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
+
+          dune exec ./tests/generate/generate.exe micheline 50 \
+              nano tests/samples/micheline
+          dune exec ./tests/generate/generate.exe operations 50 \
+              nano tests/samples/operations
 
       - name: Unit tests
         run: |
-          # Switch to opam user and run unit tests
-          su - opam -c "cd /app && eval \$(opam env) && make -C tests/unit"
+          export PATH=/home/opam/.opam/4.14/bin:$PATH
+
+          make -C tests/unit
 
       - name: Upload results (nano, micheline)
         uses: actions/upload-artifact@v4
