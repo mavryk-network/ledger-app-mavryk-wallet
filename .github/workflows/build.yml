@@ -122,6 +122,16 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     steps:
+      - name: Debug Docker image
+        run: |
+          echo "Docker image being used: ${{ needs.build_docker_mavryk_ocaml.outputs.image }}"
+          echo "Checking if image exists locally:"
+          docker images | grep mavryk || echo "No mavryk images found locally"
+          echo "Checking container info:"
+          cat /etc/os-release || echo "No os-release found"
+          echo "Checking available users:"
+          cat /etc/passwd | grep -E "(opam|root|runner)" || echo "No relevant users found"
+
       - name: Checkout
         uses: actions/checkout@v3
 
