@@ -116,12 +116,18 @@ jobs:
   generate_samples_unit_tests:
     needs: [build_docker_mavryk_ocaml]
     runs-on: ubuntu-latest
+    container:
+      image: ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/mavryk_ocaml:main
+      credentials:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+      options: -u root --entrypoint /bin/bash
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
-        with:
+        with: 
           tool-cache: true
-
+      
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -130,23 +136,21 @@ jobs:
           mkdir -p tests/samples/micheline/nano
           mkdir -p tests/samples/operations/nano
 
-      - name: Run in Docker container
+      - name: Generate
         run: |
-          docker run --rm -u root -v "$(pwd):/app" -w /app \
-            ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/mavryk_ocaml:main \
-            bash -c "
-              export PATH=/home/opam/.opam/4.14/bin:\$PATH
-              cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
-              su - opam -c 'cd /app && eval \$(opam env) && dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline'
-              su - opam -c 'cd /app && eval \$(opam env) && dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations'
-            "
-      - name: Run unit tests in Docker container
+          export PATH=/home/opam/.opam/4.14/bin:$PATH
+          cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
+
+          dune exec ./tests/generate/generate.exe micheline 50 \
+              nano tests/samples/micheline
+          dune exec ./tests/generate/generate.exe operations 50 \
+              nano tests/samples/operations
+
+      - name: Unit tests
         run: |
-          docker run --rm -u root -v "$(pwd):/app" -w /app \
-            ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/mavryk_ocaml:main \
-            bash -c "
-              su - opam -c 'cd /app && eval \$(opam env) && make -C tests/unit'
-            "
+          export PATH=/home/opam/.opam/4.14/bin:$PATH
+
+          make -C tests/unit
 
       - name: Upload results (nano, micheline)
         uses: actions/upload-artifact@v4
