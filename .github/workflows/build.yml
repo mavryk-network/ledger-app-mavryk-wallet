@@ -121,7 +121,6 @@ jobs:
       credentials:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-      options: -u root --entrypoint /bin/bash
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -138,7 +137,7 @@ jobs:
 
           eval $(opam env) && dune exec ./tests/generate/generate.exe micheline 50 \
               nano tests/samples/micheline
-          eval $(opam env) &&dune exec ./tests/generate/generate.exe operations 50 \
+          eval $(opam env) && dune exec ./tests/generate/generate.exe operations 50 \
               nano tests/samples/operations
 
       - name: Unit tests
