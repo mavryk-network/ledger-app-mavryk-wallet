@@ -155,13 +155,8 @@ jobs:
              -w /workspace \
              ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/mavryk_ocaml:main -c '
                eval $(opam env)
-               which dune
-               echo "=== Generating samples ==="
                dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline
-               echo "=== Micheline samples generated ==="
                dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations
-               echo "=== Operations samples generated ==="
-               echo "=== Running unit tests ==="
                make -C tests/unit
              '
 
