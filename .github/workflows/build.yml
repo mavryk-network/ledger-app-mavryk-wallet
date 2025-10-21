@@ -124,9 +124,16 @@ jobs:
     steps:
       - name: Debug Docker image
         run: |
+          echo "=== BUILD.YML DEBUG ==="
           echo "Docker image being used: ${{ needs.build_docker_mavryk_ocaml.outputs.image }}"
           echo "Job result: ${{ needs.build_docker_mavryk_ocaml.result }}"
           echo "Job status: ${{ needs.build_docker_mavryk_ocaml.conclusion }}"
+          echo "Raw output value: '${{ needs.build_docker_mavryk_ocaml.outputs.image }}'"
+          echo "Output length: ${#{{ needs.build_docker_mavryk_ocaml.outputs.image }}}"
+          echo "All job outputs:"
+          echo "  - image: '${{ needs.build_docker_mavryk_ocaml.outputs.image }}'"
+          echo "  - result: '${{ needs.build_docker_mavryk_ocaml.result }}'"
+          echo "  - conclusion: '${{ needs.build_docker_mavryk_ocaml.conclusion }}'"
 
       - name: Checkout
         uses: actions/checkout@v3

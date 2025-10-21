@@ -60,9 +60,24 @@ jobs:
         id: branches
         shell: bash
         run: |
-          echo "source=$(echo ${{ github.head_ref }} | cut -c -63 | sed -E 's/[^a-z0-9-]+/-/g' | sed -E 's/^-*([a-z0-9-]+[a-z0-9])-*$$/\1/g')" >> $GITHUB_OUTPUT
-          echo "target=$(echo ${GITHUB_BASE_REF} | cut -c -63 | sed -E 's/[^a-z0-9-]+/-/g' | sed -E 's/^-*([a-z0-9-]+[a-z0-9])-*$$/\1/g')" >> $GITHUB_OUTPUT
-          echo "branch=$(echo ${{ github.ref }} | perl -pE 's|.*?/.*?/||g' | cut -c -63 | sed -E 's/[^a-z0-9-]+/-/g' | sed -E 's/^-*([a-z0-9-]+[a-z0-9])-*$$/\1/g')" >> $GITHUB_OUTPUT
+          echo "=== BRANCHES DEBUG ==="
+          echo "github.head_ref: '${{ github.head_ref }}'"
+          echo "github.base_ref: '${{ github.base_ref }}'"
+          echo "github.ref: '${{ github.ref }}'"
+          echo "GITHUB_BASE_REF: '$GITHUB_BASE_REF'"
+          
+          SOURCE=$(echo ${{ github.head_ref }} | cut -c -63 | sed -E 's/[^a-z0-9-]+/-/g' | sed -E 's/^-*([a-z0-9-]+[a-z0-9])-*$$/\1/g')
+          TARGET=$(echo ${GITHUB_BASE_REF} | cut -c -63 | sed -E 's/[^a-z0-9-]+/-/g' | sed -E 's/^-*([a-z0-9-]+[a-z0-9])-*$$/\1/g')
+          BRANCH=$(echo ${{ github.ref }} | perl -pE 's|.*?/.*?/||g' | cut -c -63 | sed -E 's/[^a-z0-9-]+/-/g' | sed -E 's/^-*([a-z0-9-]+[a-z0-9])-*$$/\1/g')
+          
+          echo "Processed values:"
+          echo "  - source: '$SOURCE'"
+          echo "  - target: '$TARGET'"
+          echo "  - branch: '$BRANCH'"
+          
+          echo "source=$SOURCE" >> $GITHUB_OUTPUT
+          echo "target=$TARGET" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
 
       - name: Fetch branches
         run: |
@@ -74,14 +89,35 @@ jobs:
       - name: Container tag
         id: container_tag
         run: |
+          echo "=== CONTAINER_TAG DEBUG ==="
+          echo "Input values:"
+          echo "  - DOCKER_REGISTRY: '${{ vars.DOCKER_REGISTRY }}'"
+          echo "  - DOCKER_REPOSITORY: '${{ vars.DOCKER_REPOSITORY }}'"
+          echo "  - image_name: '${{ inputs.image_name }}'"
+          echo "Branches step outputs:"
+          echo "  - source: '${{ steps.branches.outputs.source }}'"
+          echo "  - target: '${{ steps.branches.outputs.target }}'"
+          echo "  - branch: '${{ steps.branches.outputs.branch }}'"
+          
           BASE=${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/${{ inputs.image_name }}
+          echo "BASE: '$BASE'"
+          
           if [ ! -z ${{ steps.branches.outputs.target }} ]; then
-            echo "tag=$BASE:${{ steps.branches.outputs.source }}" >> $GITHUB_OUTPUT
-            echo "prev_tag=$BASE:${{ steps.branches.outputs.target }}" >> $GITHUB_OUTPUT
+            echo "Using target branch logic (PR)"
+            TAG="$BASE:${{ steps.branches.outputs.source }}"
+            PREV_TAG="$BASE:${{ steps.branches.outputs.target }}"
           else
-            echo "tag=$BASE:${{ steps.branches.outputs.branch }}" >> $GITHUB_OUTPUT
-            echo "prev_tag=$BASE:${{ steps.branches.outputs.branch }}" >> $GITHUB_OUTPUT
+            echo "Using branch logic (push)"
+            TAG="$BASE:${{ steps.branches.outputs.branch }}"
+            PREV_TAG="$BASE:${{ steps.branches.outputs.branch }}"
           fi
+          
+          echo "Final values:"
+          echo "  - tag: '$TAG'"
+          echo "  - prev_tag: '$PREV_TAG'"
+          
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
       - name: Dockerfile changed
         id: dockerfile
         run: |
@@ -115,3 +151,16 @@ jobs:
           push: true
           file: ${{ inputs.dockerfile }}
           tags: ${{ steps.container_tag.outputs.tag }}
+      
+      - name: Debug final output
+        run: |
+          echo "=== DOCKER.YML DEBUG ==="
+          echo "Final image tag: ${{ steps.container_tag.outputs.tag }}"
+          echo "Job output will be: ${{ steps.container_tag.outputs.tag }}"
+          echo "Raw tag value: '${{ steps.container_tag.outputs.tag }}'"
+          echo "Tag length: ${#{{ steps.container_tag.outputs.tag }}}"
+          echo "All step outputs:"
+          echo "  - tag: '${{ steps.container_tag.outputs.tag }}'"
+          echo "  - prev_tag: '${{ steps.container_tag.outputs.prev_tag }}'"
+          echo "Job outputs that will be set:"
+          echo "  - image: '${{ steps.container_tag.outputs.tag }}'"
