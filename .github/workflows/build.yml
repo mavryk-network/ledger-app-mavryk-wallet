@@ -146,6 +146,13 @@ jobs:
               mkdir -p tests/samples/micheline/nano
               mkdir -p tests/samples/operations/nano
 
+              which opam
+              which dune
+
+              eval $(opam env)
+
+              which dune
+
               cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
 
               dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline
