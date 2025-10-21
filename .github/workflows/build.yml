@@ -149,18 +149,22 @@ jobs:
               chown -R opam:opam /workspace/app
             '
           
-          # Then run as opam user for OPAM/dune commands
-          docker run --rm -u opam \
-            --entrypoint /bin/bash \
-            -v "${{ github.workspace }}:/workspace" \
-            -w /workspace \
-            ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/mavryk_ocaml:main -c '
-              eval $(opam env)
-              which dune
-              dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline
-              dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations
-              make -C tests/unit
-            '
+           # Then run as opam user for OPAM/dune commands
+           docker run --rm -u opam \
+             --entrypoint /bin/bash \
+             -v "${{ github.workspace }}:/workspace" \
+             -w /workspace \
+             ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/mavryk_ocaml:main -c '
+               eval $(opam env)
+               which dune
+               echo "=== Generating samples ==="
+               dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline
+               echo "=== Micheline samples generated ==="
+               dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations
+               echo "=== Operations samples generated ==="
+               echo "=== Running unit tests ==="
+               make -C tests/unit
+             '
 
       - name: Upload results (nano, micheline)
         uses: actions/upload-artifact@v4
