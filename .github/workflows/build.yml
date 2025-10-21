@@ -121,6 +121,7 @@ jobs:
       credentials:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+      options: -u root --entrypoint /bin/bash
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -130,14 +131,28 @@ jobs:
           mkdir -p tests/samples/micheline/nano
           mkdir -p tests/samples/operations/nano
 
+      - name: Debug environment
+        run: |
+          echo "Current user: $(whoami)"
+          echo "Current directory: $(pwd)"
+          echo "PATH: $PATH"
+          echo "Looking for opam:"
+          which opam || echo "opam not found"
+          echo "Looking for dune:"
+          which dune || echo "dune not found"
+          echo "Contents of /home/opam:"
+          ls -la /home/opam/ || echo "No /home/opam directory"
+          echo "Contents of /home/opam/.opam:"
+          ls -la /home/opam/.opam/ || echo "No .opam directory"
+
       - name: Generate
         run: |
           export PATH=/home/opam/.opam/4.14/bin:$PATH
           cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
 
-          eval $(opam env) && dune exec ./tests/generate/generate.exe micheline 50 \
+          dune exec ./tests/generate/generate.exe micheline 50 \
               nano tests/samples/micheline
-          eval $(opam env) && dune exec ./tests/generate/generate.exe operations 50 \
+          dune exec ./tests/generate/generate.exe operations 50 \
               nano tests/samples/operations
 
       - name: Unit tests
