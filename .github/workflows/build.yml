@@ -141,24 +141,18 @@ jobs:
             -w /workspace \
             ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/mavryk_ocaml:main -lc '
               set -e
-              export PATH=/home/opam/.opam/4.14/bin:$PATH
-
+              
+              # Create directories as root
               mkdir -p tests/samples/micheline/nano
               mkdir -p tests/samples/operations/nano
-
-              which opam
-              which dune
-
-              eval $(opam env)
-
-              which dune
-
+              
+              # Copy files as root (no permission issues)
               cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
-
-              dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline
-              dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations
-
-              make -C tests/unit
+              
+              # Switch to opam user for OPAM/dune commands
+              su - opam -c "cd /workspace && eval \$(opam env) && dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline"
+              su - opam -c "cd /workspace && eval \$(opam env) && dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations"
+              su - opam -c "cd /workspace && eval \$(opam env) && make -C tests/unit"
             '
 
       - name: Upload results (nano, micheline)
