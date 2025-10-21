@@ -114,43 +114,45 @@ jobs:
           path: ./integration_tests_log
 
   generate_samples_unit_tests:
-    needs: [build_docker_mavryk_ocaml]
     runs-on: ubuntu-latest
-    container:
-      image: ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/mavryk_ocaml:main
-      credentials:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-      options: -u root --entrypoint /bin/bash
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
-        with: 
+        with:
           tool-cache: true
-      
+
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Create dirs
+      - name: Docker login
         run: |
-          mkdir -p tests/samples/micheline/nano
-          mkdir -p tests/samples/operations/nano
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
+            ${{ vars.DOCKER_REGISTRY }} -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Generate
+      - name: Pull build image (after cleanup)
         run: |
-          export PATH=/home/opam/.opam/4.14/bin:$PATH
-          cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
+          docker pull ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/mavryk_ocaml:main
 
-          dune exec ./tests/generate/generate.exe micheline 50 \
-              nano tests/samples/micheline
-          dune exec ./tests/generate/generate.exe operations 50 \
-              nano tests/samples/operations
-
-      - name: Unit tests
+      - name: Generate + Unit tests inside container
         run: |
-          export PATH=/home/opam/.opam/4.14/bin:$PATH
+          docker run --rm -u root \
+            --entrypoint /bin/bash \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/mavryk_ocaml:main -lc '
+              set -e
+              export PATH=/home/opam/.opam/4.14/bin:$PATH
 
-          make -C tests/unit
+              mkdir -p tests/samples/micheline/nano
+              mkdir -p tests/samples/operations/nano
+
+              cp ./app/src/parser/[!g]*.[ch] ./tests/unit/parser
+
+              dune exec ./tests/generate/generate.exe micheline 50 nano tests/samples/micheline
+              dune exec ./tests/generate/generate.exe operations 50 nano tests/samples/operations
+
+              make -C tests/unit
+            '
 
       - name: Upload results (nano, micheline)
         uses: actions/upload-artifact@v4
