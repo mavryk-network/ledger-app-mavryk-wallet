@@ -114,6 +114,7 @@ jobs:
           path: ./integration_tests_log
 
   generate_samples_unit_tests:
+    needs: [build_docker_tezos_ocaml]
     runs-on: ubuntu-latest
     steps:
       - name: Free Disk Space (Ubuntu)
