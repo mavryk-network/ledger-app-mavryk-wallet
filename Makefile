@@ -176,9 +176,26 @@ test/samples/operations/%/samples.hex:	tests/generate/*.ml*	\
 	$(DOCKER_RUN_APP_OCAML) make -C /app/tests/generate	\
 	    ../samples/operations/$*/samples.hex
 
+# Target IDs match what ledgerctl reads from the device (str of HexDisplayedInteger)
+LEDGER_TARGET_ID_nanos   = 0x31100004
+LEDGER_TARGET_ID_nanosp  = 0x33100004
+LEDGER_TARGET_ID_nanox   = 0x33000004
+LEDGER_TARGET_ID_stax    = 0x33200004
+LEDGER_TARGET_ID_flex    = 0x33300004
+
+LEDGER_ICON_nanos  = app/icons/nano-s-mavryk.png
+LEDGER_ICON_nanosp = app/icons/nano-x-mavryk.png
+LEDGER_ICON_nanox  = app/icons/nano-x-mavryk.png
+LEDGER_ICON_stax   = app/icons/stax_mavryk.png
+LEDGER_ICON_flex   = app/icons/flex_mavryk.png
+
 load_%: app_%.tgz
-	ledgerctl delete "Mavryk Wallet"
-	DIR=`mktemp -d` ; tar xf $< -C $$DIR && cd $$DIR && ledgerctl install app.toml ; rm -rf $$DIR
+	ledgerctl delete "Mavryk Wallet" || true
+	DIR=`mktemp -d` ; \
+	tar xf $< -C $$DIR && \
+	python3 scripts/prepare_load.py $$DIR $(LEDGER_TARGET_ID_$*) $(LEDGER_ICON_$*) && \
+	cd $$DIR && ledgerctl install app.toml ; \
+	rm -rf $$DIR
 
 #
 # Dash vs under aliases:
