@@ -55,7 +55,7 @@ def main():
     shutil.copy(icon_src, os.path.join(d, icon_name))
 
     toml = f"""name = "Mavryk Wallet"
-version = "3.0.6"
+version = "1.0.0"
 
 ["{tid}"]
 binary = "app_trimmed.hex"
