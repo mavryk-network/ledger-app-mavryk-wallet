@@ -141,7 +141,7 @@ mv_ui_stream_push_learn_more(void)
 {
     FUNC_ENTER(("void"));
     mv_ui_stream_push(MV_UI_STREAM_CB_NOCB,
-                      "Learn More:", "bit.ly/ledger-tez",
+                      "Learn More:", "bit.ly/ledger-mav",
                       MV_UI_LAYOUT_HOME_BN, MV_UI_ICON_NONE);
     FUNC_LEAVE();
 }

@@ -112,7 +112,7 @@ switch_to_blindsigning_on_error(void)
     // copy error code
     PRINTF("[DEBUG] refill_error: global.step = %d\n %s", global.step,
            global.error_code);
-    char blindsign_msg[60] = "Learn More: bit.ly/ledger-tez\nERROR: ";
+    char blindsign_msg[60] = "Learn More: bit.ly/ledger-mav\nERROR: ";
 
     strncpy(blindsign_msg + strlen(blindsign_msg), global.error_code,
             ERROR_CODE_SIZE);
