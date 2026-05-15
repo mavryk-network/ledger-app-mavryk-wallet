@@ -24,7 +24,7 @@ which instruction is being used.
 Here is an example of an APDU message from the ledger-app-mavryk-wallet
 tests:
 
-> 0x8003000011048000002c800006c18000000080000000
+> 0x8003000011048000002c800007b18000000080000000
 
 This parses as:
 
@@ -35,7 +35,7 @@ This parses as:
 | *P1*    | 0x00                                 |
 | *P2*    | 0x00                                 |
 | *LC*    | 0x11 (17)                            |
-| *CDATA* | 0x038000002c800006c18000000080000000 |
+| *CDATA* | 0x048000002c800007b18000000080000000 |
 
 ## Exception
 
@@ -55,6 +55,7 @@ This parses as:
 | `EXC_MEMORY_ERROR`              | 0x9200 | Memory error.                                            |
 | `EXC_UNEXPECTED_STATE`          | 0x9001 | The state of the application is unexpected.              |
 | `EXC_UNEXPECTED_SIGN_STATE`     | 0x9002 | The state of the application at signature is unexpected. |
+| `EXC_UNKNOWN_CX_ERR`           | 0x9003 | Unknown cryptographic error.                             |
 | `EXC_UNKNOWN`                   | 0x90FF | Unknown exception.                                        |
 
 ## APDU instructions in use by Mavryk Ledger apps
@@ -127,9 +128,11 @@ Get the ledger’s internal public key according to the `path`.
 After accepting the request, it will sign the `message` with the key
 corresponding to the `path`.
 
-If blind signing is disabled, only the hash of the `message` will be
-displayed. Otherwise, the message will be parsed and displayed (see
-section [Parsing](#parsing)).
+If parsing succeeds, the message details will be displayed on screen
+(see section [Parsing](#parsing)). If parsing fails and blind signing
+is enabled, only the hash of the `message` will be displayed for
+review. If parsing fails and blind signing is disabled, the signature
+request will be rejected.
 
 These instructions will require several APDUs.
 
